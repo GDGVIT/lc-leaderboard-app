@@ -1,37 +1,24 @@
 import 'package:flutter/material.dart';
+import 'package:leaderboard_app/provider/chatlists_provider.dart';
+import 'package:provider/provider.dart';
 import 'chat_page.dart';
 
 class ChatlistsPage extends StatelessWidget {
-  ChatlistsPage({super.key});
+  const ChatlistsPage({super.key});
 
-  final String currentUserEmail = "me@example.com";
-
-  final List<Map<String, dynamic>> dummyUsers = List.generate(
-    10,
-    (index) => {
-      "name": "Penny Valeria",
-      "message": "Text text text text....",
-      "time": "12:35 pm",
-      "email": "user$index@example.com",
-      "uid": "uid_$index",
-      "unread": index != 0,
-    },
-  );
-
-  final List<String> filters = ["All", "Unread", "Favourites", "Groups"];
-  final int selectedFilterIndex = 0;
+  final List<String> filters = const ["All", "Unread", "Favourites", "Groups"];
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context).colorScheme;
+    final chatProvider = Provider.of<ChatListProvider>(context);
+    final chatUsers = chatProvider.chatUsers;
 
     return Scaffold(
       backgroundColor: theme.surface,
       body: GestureDetector(
         behavior: HitTestBehavior.translucent,
-        onTap: () {
-          FocusScope.of(context).unfocus();
-        },
+        onTap: () => FocusScope.of(context).unfocus(),
         child: SafeArea(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -39,14 +26,12 @@ class ChatlistsPage extends StatelessWidget {
               // Chats title
               Padding(
                 padding: const EdgeInsets.only(left: 16, top: 16),
-                child: Text(
-                  'Chats',
-                  style: TextStyle(
-                    color: theme.primary,
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
+                child: Text('Chats',
+                    style: TextStyle(
+                      color: theme.primary,
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                    )),
               ),
               const SizedBox(height: 10),
 
@@ -60,15 +45,12 @@ class ChatlistsPage extends StatelessWidget {
                         style: TextStyle(color: theme.primary),
                         decoration: InputDecoration(
                           hintText: "Search",
-                          hintStyle: TextStyle(
-                            color: theme.primary.withOpacity(0.5),
-                          ),
+                          hintStyle:
+                              TextStyle(color: theme.primary.withOpacity(0.5)),
                           filled: true,
                           fillColor: Colors.grey.shade900,
                           contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 12,
-                          ),
+                              horizontal: 16, vertical: 12),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
                             borderSide: BorderSide.none,
@@ -95,32 +77,26 @@ class ChatlistsPage extends StatelessWidget {
                 height: 40,
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: filters.asMap().entries.map((entry) {
-                    final i = entry.key;
-                    final label = entry.value;
-                    final isSelected = i == selectedFilterIndex;
-
+                  children: filters.map((label) {
+                    final isSelected = label == "All"; // static for now
                     return ElevatedButton(
                       onPressed: () {
-                        // Add filter logic here if needed
+                        // Add filtering logic later
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: isSelected
                             ? theme.secondary
                             : Colors.grey.shade900,
-                        foregroundColor: isSelected
-                            ? Colors.black
-                            : theme.primary,
+                        foregroundColor:
+                            isSelected ? Colors.black : theme.primary,
                         padding: const EdgeInsets.symmetric(horizontal: 20),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(20),
                         ),
                         elevation: 0,
                       ),
-                      child: Text(
-                        label,
-                        style: const TextStyle(fontWeight: FontWeight.w600),
-                      ),
+                      child: Text(label,
+                          style: const TextStyle(fontWeight: FontWeight.w600)),
                     );
                   }).toList(),
                 ),
@@ -130,19 +106,20 @@ class ChatlistsPage extends StatelessWidget {
               // Chat List
               Expanded(
                 child: ListView.builder(
-                  itemCount: dummyUsers.length,
+                  itemCount: chatUsers.length,
                   itemBuilder: (context, index) {
-                    final user = dummyUsers[index];
+                    final user = chatUsers[index];
                     return Column(
                       children: [
                         InkWell(
                           onTap: () {
+                            chatProvider.markAsRead(user["email"]);
                             Navigator.push(
                               context,
                               MaterialPageRoute(
                                 builder: (context) => ChatPage(
-                                  receiverEmail: user["email"]!,
-                                  receiverID: user["uid"]!,
+                                  receiverEmail: user["email"],
+                                  receiverID: user["uid"],
                                 ),
                               ),
                             );
@@ -216,7 +193,7 @@ class ChatlistsPage extends StatelessWidget {
                                       ),
                                     ),
                                     const SizedBox(height: 8),
-                                    if (user["unread"])
+                                    if (user["unread"] == true)
                                       const CircleAvatar(
                                         radius: 6,
                                         backgroundColor: Colors.amber,

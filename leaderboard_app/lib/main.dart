@@ -2,13 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:leaderboard_app/pages/home_page.dart';
 import 'package:leaderboard_app/pages/signup_page.dart';
 import 'package:leaderboard_app/pages/signin_page.dart';
+import 'package:leaderboard_app/provider/chatlists_provider.dart';
 import 'package:leaderboard_app/provider/theme_provider.dart';
 import 'package:provider/provider.dart';
 
 void main() {
   runApp(
-    ChangeNotifierProvider(
-      create: (_) => ThemeProvider(),
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => ThemeProvider()),
+        ChangeNotifierProvider(create: (_) => ChatListProvider()..loadDummyChats(),),
+      ],
       child: const MainApp(),
     ),
   );
