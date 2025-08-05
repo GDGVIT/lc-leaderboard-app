@@ -13,20 +13,30 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   int _selectedIndex = 0;
 
-  final List<Widget> _pages = [
-    const DashboardPage(),
-    ChatlistsPage(),
-    Center(child: Text("Stats Page", style: TextStyle(color: Colors.white))),
-    SettingsPage(),
-  ];
+  // 🔁 Move _pages inside build method to ensure correct context
+  List<Widget> _buildPages() {
+    return [
+      const DashboardPage(),
+      ChatlistsPage(),
+      const Center(
+        child: Text(
+          "Stats Page",
+          style: TextStyle(color: Colors.white),
+        ),
+      ),
+      SettingsPage(),
+    ];
+  }
 
   @override
   Widget build(BuildContext context) {
+    final pages = _buildPages(); // 👈 Now context is ready here
+
     return Scaffold(
       backgroundColor: Colors.black,
       body: IndexedStack(
         index: _selectedIndex,
-        children: _pages,
+        children: pages,
       ),
       bottomNavigationBar: Theme(
         data: Theme.of(context).copyWith(

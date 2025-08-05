@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:leaderboard_app/pages/providers/theme_provider.dart';
+import 'package:provider/provider.dart';
 
 class SettingsPage extends StatelessWidget {
   const SettingsPage({super.key});
@@ -17,7 +19,6 @@ class SettingsPage extends StatelessWidget {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-
           // ====== Personal Details ======
           const Text(
             'My Account',
@@ -206,13 +207,14 @@ class SettingsPage extends StatelessWidget {
                 Wrap(
                   spacing: 16,
                   children: [
-                    _buildThemeDot(Colors.pink),
-                    _buildThemeDot(Colors.red),
-                    _buildThemeDot(Colors.green),
-                    _buildThemeDot(Colors.teal),
-                    _buildThemeDot(Colors.yellow),
-                    _buildThemeDot(Colors.blueAccent),
-                    _buildThemeDot(Colors.white),
+                    _buildThemeDot(context, Colors.pink),
+                    _buildThemeDot(context, Colors.red),
+                    _buildThemeDot(context, Colors.green),
+                    _buildThemeDot(context, Colors.teal),
+                    _buildThemeDot(context, Colors.amber),
+                    _buildThemeDot(context, Colors.blueAccent),
+                    _buildThemeDot(context, Colors.white),
+                    _buildThemeDot(context, Colors.deepPurpleAccent),
                   ],
                 ),
               ],
@@ -254,10 +256,24 @@ class SettingsPage extends StatelessWidget {
     );
   }
 
-  Widget _buildThemeDot(Color color) {
+  Widget _buildThemeDot(BuildContext context, Color color) {
     return GestureDetector(
-      onTap: () {},
-      child: CircleAvatar(radius: 14, backgroundColor: color),
+      onTap: () {
+        final themeProvider = Provider.of<ThemeProvider>(
+          context,
+          listen: false,
+        );
+        themeProvider.setThemeColor(color);
+      },
+      child: Container(
+        width: 28,
+        height: 28,
+        margin: const EdgeInsets.only(bottom: 10),
+        decoration: BoxDecoration(
+          color: color,
+          shape: BoxShape.circle,
+        ),
+      ),
     );
   }
 }

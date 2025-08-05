@@ -1,26 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:leaderboard_app/pages/components/user_provider.dart';
 
-class UserProvider extends ChangeNotifier {
-  String name = "First Name Last Name";
-  String email = "username@email.com";
-  int streak = 4;
-
-  void updateStreak(int newStreak) {
-    streak = newStreak;
-    notifyListeners();
-  }
-
-  void updateUser({required String newName, required String newEmail}) {
-    name = newName;
-    email = newEmail;
-    notifyListeners();
-  }
-}
-
-class DashboardPage extends StatelessWidget {
+class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
 
+  @override
+  State<DashboardPage> createState() => _DashboardPageState();
+}
+
+class _DashboardPageState extends State<DashboardPage> {
   @override
   Widget build(BuildContext context) {
     final user = Provider.of<UserProvider>(context);
@@ -39,7 +28,7 @@ class DashboardPage extends StatelessWidget {
                 constraints: BoxConstraints(maxWidth: maxWidth),
                 child: Column(
                   children: [
-                    // Header
+                    // ✅ Header using UserProvider
                     Container(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 16,
