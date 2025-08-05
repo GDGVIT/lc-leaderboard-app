@@ -1,10 +1,30 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
+class UserProvider extends ChangeNotifier {
+  String name = "First Name Last Name";
+  String email = "username@email.com";
+  int streak = 4;
+
+  void updateStreak(int newStreak) {
+    streak = newStreak;
+    notifyListeners();
+  }
+
+  void updateUser({required String newName, required String newEmail}) {
+    name = newName;
+    email = newEmail;
+    notifyListeners();
+  }
+}
 
 class DashboardPage extends StatelessWidget {
   const DashboardPage({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final user = Provider.of<UserProvider>(context);
+
     return Scaffold(
       backgroundColor: Colors.black,
       body: SafeArea(
@@ -34,21 +54,21 @@ class DashboardPage extends StatelessWidget {
                             child: Icon(Icons.person, color: Colors.black),
                           ),
                           const SizedBox(width: 12),
-                          const Expanded(
+                          Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  "First Name Last Name",
-                                  style: TextStyle(
+                                  user.name,
+                                  style: const TextStyle(
                                     color: Colors.white,
                                     fontSize: 14,
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),
                                 Text(
-                                  "username@email.com",
-                                  style: TextStyle(
+                                  user.email,
+                                  style: const TextStyle(
                                     color: Colors.grey,
                                     fontSize: 12,
                                   ),
@@ -58,7 +78,7 @@ class DashboardPage extends StatelessWidget {
                           ),
                           _buildHeaderButton(
                             Icons.local_fire_department,
-                            "4",
+                            "${user.streak}",
                             Colors.amber,
                           ),
                           const SizedBox(width: 8),

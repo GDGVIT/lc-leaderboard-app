@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:leaderboard_app/pages/components/user_provider.dart';
 import 'package:leaderboard_app/pages/home_page.dart';
 import 'package:leaderboard_app/pages/signup_page.dart';
 import 'package:leaderboard_app/pages/signin_page.dart';
 import 'package:leaderboard_app/pages/providers/theme_provider.dart';
-import 'package:leaderboard_app/pages/providers/chat_provider.dart'; // 👈 Make sure this is the correct path
+import 'package:leaderboard_app/pages/providers/chat_provider.dart';
 import 'package:provider/provider.dart';
 
 void main() {
@@ -11,7 +12,8 @@ void main() {
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
-        ChangeNotifierProvider(create: (_) => ChatProvider()), // 👈 Added
+        ChangeNotifierProvider(create: (_) => ChatProvider()),
+        ChangeNotifierProvider(create: (_) => UserProvider())
       ],
       child: const MainApp(),
     ),
