@@ -61,56 +61,59 @@ class _ChatViewState extends State<ChatView> {
     final theme = Theme.of(context).colorScheme;
     final provider = Provider.of<ChatProvider>(context);
 
-    return Scaffold(
-      backgroundColor: theme.surface,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        leading: const BackButton(),
-        titleSpacing: 0,
-        title: GestureDetector(
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const ProfilePage()),
-            );
-          },
-          child: Row(
-            children: [
-              const CircleAvatar(radius: 20, backgroundColor: Colors.grey),
-              const SizedBox(width: 8),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text("Penny Valeria", style: TextStyle(color: theme.primary, fontWeight: FontWeight.bold, fontSize: 16)),
-                  Text("Online", style: TextStyle(color: theme.primary.withOpacity(0.6), fontSize: 12)),
-                ],
-              ),
-            ],
-          ),
-        ),
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 16),
-            child: ElevatedButton(
-              onPressed: () {},
-              style: ElevatedButton.styleFrom(
-                backgroundColor: theme.inversePrimary,
-                foregroundColor: Colors.black,
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
-              ),
-              child: const Text("Duel Now!"),
+    return GestureDetector(
+      onTap: () => FocusScope.of(context).unfocus(),
+      child: Scaffold(
+        backgroundColor: theme.surface,
+        appBar: AppBar(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          leading: const BackButton(),
+          titleSpacing: 0,
+          title: GestureDetector(
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const ProfilePage()),
+              );
+            },
+            child: Row(
+              children: [
+                const CircleAvatar(radius: 20, backgroundColor: Colors.grey),
+                const SizedBox(width: 8),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text("Penny Valeria", style: TextStyle(color: theme.primary, fontWeight: FontWeight.bold, fontSize: 16)),
+                    Text("Online", style: TextStyle(color: theme.primary.withOpacity(0.6), fontSize: 12)),
+                  ],
+                ),
+              ],
             ),
           ),
-        ],
-      ),
-      body: Column(
-        children: [
-          Expanded(child: _buildMessageList(provider)),
-          if (provider.showAttachmentOptions) _buildAttachmentDropdown(),
-          _buildUserInput(provider),
-        ],
+          actions: [
+            Padding(
+              padding: const EdgeInsets.only(right: 16),
+              child: ElevatedButton(
+                onPressed: () {},
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: theme.inversePrimary,
+                  foregroundColor: Colors.black,
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+                ),
+                child: const Text("Duel Now!"),
+              ),
+            ),
+          ],
+        ),
+        body: Column(
+          children: [
+            Expanded(child: _buildMessageList(provider)),
+            if (provider.showAttachmentOptions) _buildAttachmentDropdown(),
+            _buildUserInput(provider),
+          ],
+        ),
       ),
     );
   }
@@ -227,60 +230,123 @@ class _ChatViewState extends State<ChatView> {
       );
 
   Widget _buildUserInput(ChatProvider provider) {
-    final theme = Theme.of(context).colorScheme;
+  final theme = Theme.of(context).colorScheme;
 
-    return SafeArea(
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        color: Colors.black,
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: [
-            IconButton(
-              icon: Icon(provider.showAttachmentOptions ? Icons.close : Icons.add, color: Colors.white),
-              onPressed: provider.toggleAttachmentOptions,
-            ),
-            if (provider.replyTo != null)
-              Expanded(
-                child: Row(
-                  children: [
-                    Text("Replying to: ${provider.replyTo}", style: const TextStyle(color: Colors.white70, fontSize: 12)),
-                    IconButton(
-                      icon: const Icon(Icons.close, size: 16, color: Colors.white54),
-                      onPressed: provider.clearReplyTo,
+  return SafeArea(
+    child: Padding(
+      padding: const EdgeInsets.fromLTRB(12, 6, 12, 8),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Reply section (above input)
+          if (provider.replyTo != null)
+              Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 300),
+                  child: Container(
+                    padding: const EdgeInsets.all(8),
+                    margin: const EdgeInsets.only(bottom: 10),
+                    decoration: BoxDecoration(
+                      color: Colors.grey[850],
+                      borderRadius: BorderRadius.circular(24),
                     ),
-                  ],
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            "Replying to: ${provider.replyTo}",
+                            style: const TextStyle(color: Colors.white70, fontSize: 12),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        GestureDetector(
+                          onTap: provider.clearReplyTo,
+                          child: const Icon(Icons.close, size: 16, color: Colors.white54),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
               ),
-            Expanded(
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12),
-                decoration: BoxDecoration(color: Colors.grey.shade900, borderRadius: BorderRadius.circular(24)),
-                child: TextField(
-                  controller: _messageController,
-                  focusNode: myFocusNode,
-                  style: const TextStyle(color: Colors.white),
-                  decoration: const InputDecoration(hintText: "Type a message...", hintStyle: TextStyle(color: Colors.white54), border: InputBorder.none),
+
+          // Input + Buttons row
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              // Add / Close Button
+              Padding(
+                padding: const EdgeInsets.only(bottom: 6),
+                child: IconButton(
+                  icon: Icon(
+                    provider.showAttachmentOptions ? Icons.close : Icons.add,
+                    color: Colors.white,
+                  ),
+                  onPressed: provider.toggleAttachmentOptions,
                 ),
               ),
-            ),
-            const SizedBox(width: 8),
-            CircleAvatar(
-              backgroundColor: theme.primary,
-              child: IconButton(
-                onPressed: () {
-                  provider.sendMessage(_messageController.text.trim());
-                  _messageController.clear();
-                  scrollDown();
-                },
-                icon: const Icon(Pixel.arrowup, color: Colors.black),
+
+              // Expanding TextField
+              Expanded(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                  decoration: BoxDecoration(
+                    color: Colors.grey[900],
+                    borderRadius: BorderRadius.circular(24),
+                  ),
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(
+                      minHeight: 40,
+                      maxHeight: 150,
+                    ),
+                    child: Scrollbar(
+                      child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: TextField(
+                          controller: _messageController,
+                          focusNode: myFocusNode,
+                          maxLines: null,
+                          keyboardType: TextInputType.multiline,
+                          style: const TextStyle(color: Colors.white),
+                          decoration: const InputDecoration(
+                            hintText: "Type a message...",
+                            hintStyle: TextStyle(color: Colors.white54),
+                            border: InputBorder.none,
+                            isDense: true,
+                            contentPadding: EdgeInsets.zero,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
               ),
-            ),
-          ],
-        ),
+
+              const SizedBox(width: 8),
+
+              // Send Button
+              Padding(
+                padding: const EdgeInsets.only(bottom: 6),
+                child: CircleAvatar(
+                  backgroundColor: theme.primary,
+                  radius: 22,
+                  child: IconButton(
+                    onPressed: () {
+                      provider.sendMessage(_messageController.text.trim());
+                      _messageController.clear();
+                      scrollDown();
+                    },
+                    icon: const Icon(Pixel.arrowup, color: Colors.black),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
-    );
-  }
+    ),
+  );
+}
 
   Widget _buildAttachmentDropdown() {
     return Align(

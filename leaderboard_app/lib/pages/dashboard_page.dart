@@ -1,15 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:leaderboard_app/provider/user_provider.dart';
+import 'package:provider/provider.dart';
 
-class DashboardPage extends StatefulWidget {
+class DashboardPage extends StatelessWidget {
   const DashboardPage({super.key});
 
   @override
-  State<DashboardPage> createState() => _DashboardPageState();
-}
-
-class _DashboardPageState extends State<DashboardPage> {
-  @override
   Widget build(BuildContext context) {
+    final user = Provider.of<UserProvider>(context);
+
     return Scaffold(
       backgroundColor: Colors.black,
       body: SafeArea(
@@ -39,21 +38,21 @@ class _DashboardPageState extends State<DashboardPage> {
                             child: Icon(Icons.person, color: Colors.black),
                           ),
                           const SizedBox(width: 12),
-                          const Expanded(
+                          Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  "First Name Last Name",
-                                  style: TextStyle(
+                                  user.name,
+                                  style: const TextStyle(
                                     color: Colors.white,
                                     fontSize: 14,
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),
                                 Text(
-                                  "username@email.com",
-                                  style: TextStyle(
+                                  user.email,
+                                  style: const TextStyle(
                                     color: Colors.grey,
                                     fontSize: 12,
                                   ),
@@ -63,7 +62,7 @@ class _DashboardPageState extends State<DashboardPage> {
                           ),
                           _buildHeaderButton(
                             Icons.local_fire_department,
-                            "4",
+                            "${user.streak}",
                             Colors.amber,
                           ),
                           const SizedBox(width: 8),
@@ -204,21 +203,99 @@ class _DashboardPageState extends State<DashboardPage> {
                                   Colors.grey[900],
                                 ),
                                 columns: const [
-                                  DataColumn(label: Text("Place", style: TextStyle(color: Colors.white, fontSize: 12))),
-                                  DataColumn(label: Text("Player", style: TextStyle(color: Colors.white, fontSize: 12))),
-                                  DataColumn(label: Text("Streak", style: TextStyle(color: Colors.white, fontSize: 12))),
-                                  DataColumn(label: Text("Solved", style: TextStyle(color: Colors.white, fontSize: 12))),
-                                  DataColumn(label: Text("Badge", style: TextStyle(color: Colors.white, fontSize: 12))),
+                                  DataColumn(
+                                    label: Text(
+                                      "Place",
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 12,
+                                      ),
+                                    ),
+                                  ),
+                                  DataColumn(
+                                    label: Text(
+                                      "Player",
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 12,
+                                      ),
+                                    ),
+                                  ),
+                                  DataColumn(
+                                    label: Text(
+                                      "Streak",
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 12,
+                                      ),
+                                    ),
+                                  ),
+                                  DataColumn(
+                                    label: Text(
+                                      "Solved",
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 12,
+                                      ),
+                                    ),
+                                  ),
+                                  DataColumn(
+                                    label: Text(
+                                      "Badge",
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 12,
+                                      ),
+                                    ),
+                                  ),
                                 ],
                                 rows: List.generate(
                                   5,
                                   (index) => DataRow(
                                     cells: [
-                                      DataCell(Text("${index + 1}", style: const TextStyle(color: Colors.white, fontSize: 12))),
-                                      DataCell(Text("Player ${index + 1}", style: const TextStyle(color: Colors.white, fontSize: 12))),
-                                      const DataCell(Text("12", style: TextStyle(color: Colors.white, fontSize: 12))),
-                                      const DataCell(Text("1324", style: TextStyle(color: Colors.white, fontSize: 12))),
-                                      const DataCell(Icon(Icons.star, color: Colors.amber, size: 16)),
+                                      DataCell(
+                                        Text(
+                                          "${index + 1}",
+                                          style: const TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 12,
+                                          ),
+                                        ),
+                                      ),
+                                      DataCell(
+                                        Text(
+                                          "Player ${index + 1}",
+                                          style: const TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 12,
+                                          ),
+                                        ),
+                                      ),
+                                      const DataCell(
+                                        Text(
+                                          "12",
+                                          style: TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 12,
+                                          ),
+                                        ),
+                                      ),
+                                      const DataCell(
+                                        Text(
+                                          "1324",
+                                          style: TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 12,
+                                          ),
+                                        ),
+                                      ),
+                                      const DataCell(
+                                        Icon(
+                                          Icons.star,
+                                          color: Colors.amber,
+                                          size: 16,
+                                        ),
+                                      ),
                                     ],
                                   ),
                                 ),
@@ -237,21 +314,99 @@ class _DashboardPageState extends State<DashboardPage> {
                                   Colors.grey[900],
                                 ),
                                 columns: const [
-                                  DataColumn(label: Text("No.", style: TextStyle(color: Colors.white, fontSize: 12))),
-                                  DataColumn(label: Text("Title", style: TextStyle(color: Colors.white, fontSize: 12))),
-                                  DataColumn(label: Text("Acc.", style: TextStyle(color: Colors.white, fontSize: 12))),
-                                  DataColumn(label: Text("Lvl", style: TextStyle(color: Colors.white, fontSize: 12))),
-                                  DataColumn(label: Text("Prog", style: TextStyle(color: Colors.white, fontSize: 12))),
+                                  DataColumn(
+                                    label: Text(
+                                      "No.",
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 12,
+                                      ),
+                                    ),
+                                  ),
+                                  DataColumn(
+                                    label: Text(
+                                      "Title",
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 12,
+                                      ),
+                                    ),
+                                  ),
+                                  DataColumn(
+                                    label: Text(
+                                      "Acc.",
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 12,
+                                      ),
+                                    ),
+                                  ),
+                                  DataColumn(
+                                    label: Text(
+                                      "Lvl",
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 12,
+                                      ),
+                                    ),
+                                  ),
+                                  DataColumn(
+                                    label: Text(
+                                      "Prog",
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 12,
+                                      ),
+                                    ),
+                                  ),
                                 ],
                                 rows: List.generate(
                                   4,
                                   (index) => DataRow(
                                     cells: [
-                                      DataCell(Text("${index + 1}", style: const TextStyle(color: Colors.white, fontSize: 12))),
-                                      const DataCell(Text("Problem", style: TextStyle(color: Colors.white, fontSize: 12))),
-                                      const DataCell(Text("56%", style: TextStyle(color: Colors.white, fontSize: 12))),
-                                      const DataCell(Text("Easy", style: TextStyle(color: Colors.green, fontSize: 12))),
-                                      const DataCell(Icon(Icons.circle, color: Colors.green, size: 10)),
+                                      DataCell(
+                                        Text(
+                                          "${index + 1}",
+                                          style: const TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 12,
+                                          ),
+                                        ),
+                                      ),
+                                      const DataCell(
+                                        Text(
+                                          "Problem",
+                                          style: TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 12,
+                                          ),
+                                        ),
+                                      ),
+                                      const DataCell(
+                                        Text(
+                                          "56%",
+                                          style: TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 12,
+                                          ),
+                                        ),
+                                      ),
+                                      const DataCell(
+                                        Text(
+                                          "Easy",
+                                          style: TextStyle(
+                                            color: Colors.green,
+                                            fontSize: 12,
+                                          ),
+                                        ),
+                                      ),
+                                      const DataCell(
+                                        Icon(
+                                          Icons.circle,
+                                          color: Colors.green,
+                                          size: 10,
+                                        ),
+                                      ),
                                     ],
                                   ),
                                 ),

@@ -13,21 +13,18 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   int _selectedIndex = 0;
 
-  final List<Widget> _pages = [
-    const DashboardPage(),
-    ChatlistsPage(),
-    Center(child: Text("Stats Page", style: TextStyle(color: Colors.white))),
-    SettingsPage(),
-  ];
+  List<Widget> get _pages => [
+        const DashboardPage(), // Rebuilds on each access
+        ChatlistsPage(),
+        const Center(child: Text("Stats Page", style: TextStyle(color: Colors.white))),
+        SettingsPage(),
+      ];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black,
-      body: IndexedStack(
-        index: _selectedIndex,
-        children: _pages,
-      ),
+      body: _pages[_selectedIndex], // <-- Not using IndexedStack anymore
       bottomNavigationBar: Theme(
         data: Theme.of(context).copyWith(
           canvasColor: Colors.grey[900],
@@ -43,7 +40,11 @@ class _HomePageState extends State<HomePage> {
           showUnselectedLabels: false,
           type: BottomNavigationBarType.fixed,
           currentIndex: _selectedIndex,
-          onTap: (index) => setState(() => _selectedIndex = index),
+          onTap: (index) {
+            setState(() {
+              _selectedIndex = index;
+            });
+          },
           items: const [
             BottomNavigationBarItem(
               icon: Icon(Icons.explore, size: 28),
