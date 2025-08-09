@@ -3,7 +3,7 @@ import 'package:leaderboard_app/pages/home_page.dart';
 import 'package:leaderboard_app/pages/signup_page.dart';
 import 'package:leaderboard_app/pages/signin_page.dart';
 import 'package:leaderboard_app/provider/chatlists_provider.dart';
-import 'package:leaderboard_app/provider/chat_provider.dart';  // <- import ChatProvider
+import 'package:leaderboard_app/provider/chat_provider.dart';
 import 'package:leaderboard_app/provider/theme_provider.dart';
 import 'package:leaderboard_app/provider/user_provider.dart';
 import 'package:provider/provider.dart';

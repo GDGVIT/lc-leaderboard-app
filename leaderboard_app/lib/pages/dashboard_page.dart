@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:leaderboard_app/components/compact_calendar.dart';
-import 'package:leaderboard_app/components/leaderboard_table.dart';
-import 'package:leaderboard_app/components/problem_table.dart';
-import 'package:leaderboard_app/components/daily_activity.dart';
-import 'package:leaderboard_app/components/week_view.dart';
-import 'package:leaderboard_app/components/weekly_stats.dart';
+import 'package:leaderboard_app/dashboard-components/compact_calendar.dart';
+import 'package:leaderboard_app/dashboard-components/leaderboard_table.dart';
+import 'package:leaderboard_app/dashboard-components/problem_table.dart';
+import 'package:leaderboard_app/dashboard-components/daily_activity.dart';
+import 'package:leaderboard_app/dashboard-components/week_view.dart';
+import 'package:leaderboard_app/dashboard-components/weekly_stats.dart';
 import 'package:leaderboard_app/provider/user_provider.dart';
 import 'package:provider/provider.dart';
 
