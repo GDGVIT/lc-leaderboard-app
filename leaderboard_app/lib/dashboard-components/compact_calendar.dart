@@ -39,6 +39,7 @@ class _CompactCalendarState extends State<CompactCalendar> {
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
     int year = _selectedDate.year;
     int month = _selectedDate.month;
 
@@ -60,7 +61,7 @@ class _CompactCalendarState extends State<CompactCalendar> {
           margin: const EdgeInsets.all(2),
           alignment: Alignment.center,
           decoration: BoxDecoration(
-            color: i == _selectedDate.day ? Colors.amber : Colors.transparent,
+            color: i == _selectedDate.day ? colors.secondary : Colors.transparent,
             shape: BoxShape.circle,
           ),
           child: Text(
@@ -71,78 +72,86 @@ class _CompactCalendarState extends State<CompactCalendar> {
       );
     }
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Month + Year dropdowns
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            DropdownButton<int>(
-              dropdownColor: Colors.grey[850],
-              value: month,
-              style: const TextStyle(color: Colors.white),
-              underline: Container(),
-              items: List.generate(12, (index) {
-                return DropdownMenuItem(
-                  value: index + 1,
-                  child: Text(_months[index]),
-                );
-              }),
-              onChanged: (val) {
-                if (val != null) {
-                  setState(() {
-                    _selectedDate = DateTime(year, val, 1);
-                  });
-                }
-              },
-            ),
-            const SizedBox(width: 16),
-            DropdownButton<int>(
-              dropdownColor: Colors.grey[850],
-              value: year,
-              style: const TextStyle(color: Colors.white),
-              underline: Container(),
-              items: _years.map((yr) {
-                return DropdownMenuItem(value: yr, child: Text(yr.toString()));
-              }).toList(),
-              onChanged: (val) {
-                if (val != null) {
-                  setState(() {
-                    _selectedDate = DateTime(val, month, 1);
-                  });
-                }
-              },
-            ),
-          ],
-        ),
-        const SizedBox(height: 10),
-
-        // Weekday headers
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: _weekdays.map((day) {
-            return Expanded(
-              child: Center(
-                child: Text(
-                  day,
-                  style: const TextStyle(color: Colors.grey, fontSize: 12),
-                ),
+    return Container(
+      padding: const EdgeInsets.all(14),
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: Colors.grey[850],
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Month + Year dropdowns
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              DropdownButton<int>(
+                dropdownColor: Colors.grey[850],
+                value: month,
+                style: const TextStyle(color: Colors.white),
+                underline: Container(),
+                items: List.generate(12, (index) {
+                  return DropdownMenuItem(
+                    value: index + 1,
+                    child: Text(_months[index]),
+                  );
+                }),
+                onChanged: (val) {
+                  if (val != null) {
+                    setState(() {
+                      _selectedDate = DateTime(year, val, 1);
+                    });
+                  }
+                },
               ),
-            );
-          }).toList(),
-        ),
-
-        const SizedBox(height: 6),
-
-        // Calendar grid
-        GridView.count(
-          physics: const NeverScrollableScrollPhysics(),
-          shrinkWrap: true,
-          crossAxisCount: 7,
-          children: dayWidgets,
-        ),
-      ],
+              const SizedBox(width: 16),
+              DropdownButton<int>(
+                dropdownColor: Colors.grey[850],
+                value: year,
+                style: const TextStyle(color: Colors.white),
+                underline: Container(),
+                items: _years.map((yr) {
+                  return DropdownMenuItem(value: yr, child: Text(yr.toString()));
+                }).toList(),
+                onChanged: (val) {
+                  if (val != null) {
+                    setState(() {
+                      _selectedDate = DateTime(val, month, 1);
+                    });
+                  }
+                },
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+      
+          // Weekday headers
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: _weekdays.map((day) {
+              return Expanded(
+                child: Center(
+                  child: Text(
+                    day,
+                    style: const TextStyle(color: Colors.grey, fontSize: 12),
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+      
+          const SizedBox(height: 6),
+      
+          // Calendar grid
+          GridView.count(
+            physics: const NeverScrollableScrollPhysics(),
+            shrinkWrap: true,
+            crossAxisCount: 7,
+            children: dayWidgets,
+          ),
+        ],
+      ),
     );
   }
 }

@@ -231,9 +231,9 @@ class _ChatlistsPageState extends State<ChatlistsPage> {
                                           ),
                                           const SizedBox(height: 8),
                                           if (group["unread"] == true)
-                                            const CircleAvatar(
+                                            CircleAvatar(
                                               radius: 6,
-                                              backgroundColor: Colors.amber,
+                                              backgroundColor: theme.secondary,
                                             ),
                                         ],
                                       ),

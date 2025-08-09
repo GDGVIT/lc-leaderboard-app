@@ -6,9 +6,9 @@ class ThemeProvider extends ChangeNotifier {
     colorScheme: const ColorScheme.dark(
       surface: Colors.black,         // background containers
       primary: Colors.grey,          // text & icons
-      secondary: Colors.amber,       // buttons, highlights
+      secondary:Color(0xFFF6C156),       // buttons, highlights
       tertiary: Colors.grey,         // progress bar track, muted UI
-      inversePrimary: Colors.amber,  // badge/gold accent
+      inversePrimary: Color(0xFFF6C156),  // badge/gold accent
     ),
     fontFamily: 'PixelifySans',
   );

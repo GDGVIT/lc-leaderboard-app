@@ -13,8 +13,11 @@ class DashboardPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
+
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: colors.surface,
       body: SafeArea(
         child: LayoutBuilder(
           builder: (context, constraints) {
@@ -34,13 +37,13 @@ class DashboardPage extends StatelessWidget {
                           horizontal: 16,
                           vertical: 10,
                         ),
-                        color: Colors.grey[900],
+                        color: colors.tertiary.withOpacity(0.15),
                         child: Row(
                           children: [
-                            const CircleAvatar(
+                            CircleAvatar(
                               radius: 20,
-                              backgroundColor: Colors.white,
-                              child: Icon(Icons.person, color: Colors.black),
+                              backgroundColor: colors.surface,
+                              child: Icon(Icons.person, color: colors.primary),
                             ),
                             const SizedBox(width: 12),
                             Expanded(
@@ -49,16 +52,16 @@ class DashboardPage extends StatelessWidget {
                                 children: [
                                   Text(
                                     user.name,
-                                    style: const TextStyle(
-                                      color: Colors.white,
+                                    style: TextStyle(
+                                      color: colors.primary,
                                       fontSize: 14,
                                       fontWeight: FontWeight.bold,
                                     ),
                                   ),
                                   Text(
                                     user.email,
-                                    style: const TextStyle(
-                                      color: Colors.grey,
+                                    style: TextStyle(
+                                      color: colors.primary.withOpacity(0.7),
                                       fontSize: 12,
                                     ),
                                   ),
@@ -68,13 +71,13 @@ class DashboardPage extends StatelessWidget {
                             _buildHeaderButton(
                               Icons.local_fire_department,
                               "${user.streak}",
-                              Colors.amber,
+                              colors.secondary,
                             ),
                             const SizedBox(width: 8),
                             _buildHeaderButton(
                               Icons.person_add,
                               "Invite",
-                              Colors.amber,
+                              colors.secondary,
                             ),
                           ],
                         ),
@@ -88,25 +91,17 @@ class DashboardPage extends StatelessWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            WeekView(),
+                            const WeekView(),
                             const SizedBox(height: 10),
-                            LeetCodeDailyCard(),
+                            const LeetCodeDailyCard(),
                             const SizedBox(height: 10),
-                            LeaderboardTable(),
+                            const LeaderboardTable(),
                             const SizedBox(height: 10),
-                            ProblemTable(),
+                            const ProblemTable(),
                             const SizedBox(height: 10),
-                            WeeklyStats(),
+                            const WeeklyStats(),
                             const SizedBox(height: 10),
-                            Container(
-                              padding: const EdgeInsets.all(14),
-                              width: double.infinity,
-                              decoration: BoxDecoration(
-                                color: Colors.grey[850],
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: const CompactCalendar(),
-                            ),
+                            const CompactCalendar(),
                           ],
                         ),
                       ),

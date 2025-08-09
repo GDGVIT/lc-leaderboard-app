@@ -8,6 +8,7 @@ class WeekView extends StatefulWidget {
 }
 
 class _WeekViewState extends State<WeekView> {
+  ColorScheme get colors => Theme.of(context).colorScheme;
   final List<String> days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
   late final int todayIndex;
   late final ScrollController _scrollController;
@@ -72,7 +73,7 @@ class _WeekViewState extends State<WeekView> {
                   margin: const EdgeInsets.symmetric(horizontal: 6),
                   width: 60,
                   decoration: BoxDecoration(
-                    color: isToday ? Colors.amber : Colors.grey[900],
+                    color: isToday ? colors.secondary : Colors.grey[900],
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Column(

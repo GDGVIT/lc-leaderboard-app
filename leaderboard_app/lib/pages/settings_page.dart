@@ -5,30 +5,33 @@ class SettingsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
+
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: colors.surface,
       appBar: AppBar(
         title: const Text('Settings'),
         centerTitle: true,
-        backgroundColor: Colors.black,
+        backgroundColor: colors.surface,
         elevation: 0,
-        foregroundColor: Colors.white,
+        foregroundColor: colors.primary,
       ),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
 
           // ====== Personal Details ======
-          const Text(
+          Text(
             'My Account',
-            style: TextStyle(color: Colors.white, fontSize: 16),
+            style: TextStyle(color: colors.primary, fontSize: 16),
           ),
           const SizedBox(height: 10),
 
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Colors.grey.shade900,
+              color: colors.tertiary.withOpacity(0.15),
               borderRadius: BorderRadius.circular(10),
             ),
             child: Column(
@@ -37,21 +40,21 @@ class SettingsPage extends StatelessWidget {
                 Center(
                   child: Column(
                     children: [
-                      const CircleAvatar(
+                      CircleAvatar(
                         radius: 40,
-                        backgroundColor: Colors.white24,
+                        backgroundColor: colors.tertiary.withOpacity(0.3),
                         child: Icon(
                           Icons.person,
                           size: 32,
-                          color: Colors.white,
+                          color: colors.primary,
                         ),
                       ),
                       const SizedBox(height: 6),
                       TextButton(
                         onPressed: () {},
-                        child: const Text(
+                        child: Text(
                           "Edit",
-                          style: TextStyle(color: Colors.amber),
+                          style: TextStyle(color: colors.secondary),
                         ),
                       ),
                     ],
@@ -59,44 +62,42 @@ class SettingsPage extends StatelessWidget {
                 ),
                 const SizedBox(height: 10),
 
-                const Divider(
+                Divider(
                   height: 1,
                   thickness: 0.6,
-                  indent: 0,
-                  endIndent: 0,
-                  color: Color.fromARGB(179, 158, 158, 158),
+                  color: colors.primary.withOpacity(0.3),
                 ),
 
                 // First & Last Name side-by-side
                 Row(
                   children: [
-                    Expanded(child: _buildDisplayTile('First Name', 'Penny')),
+                    Expanded(child: _buildDisplayTile('First Name', 'Penny', colors)),
                     const SizedBox(width: 10),
-                    Expanded(child: _buildDisplayTile('Last Name', 'Valeria')),
+                    Expanded(child: _buildDisplayTile('Last Name', 'Valeria', colors)),
                   ],
                 ),
-                const Divider(
+                Divider(
                   height: 1,
                   thickness: 0.6,
-                  color: Color.fromARGB(179, 158, 158, 158),
+                  color: colors.primary.withOpacity(0.3),
                 ),
-                _buildDisplayTile('Username', '@pennyval'),
-                const Divider(
+                _buildDisplayTile('Username', '@pennyval', colors),
+                Divider(
                   height: 1,
                   thickness: 0.6,
-                  color: Color.fromARGB(179, 158, 158, 158),
+                  color: colors.primary.withOpacity(0.3),
                 ),
-                _buildDisplayTile('Email', 'penny@example.com'),
-                const Divider(
+                _buildDisplayTile('Email', 'penny@example.com', colors),
+                Divider(
                   height: 1,
                   thickness: 0.6,
-                  color: Color.fromARGB(179, 158, 158, 158),
+                  color: colors.primary.withOpacity(0.3),
                 ),
-                _buildDisplayTile('Phone Number', '+91 1234567890'),
-                const Divider(
+                _buildDisplayTile('Phone Number', '+91 1234567890', colors),
+                Divider(
                   height: 1,
                   thickness: 0.6,
-                  color: Color.fromARGB(179, 158, 158, 158),
+                  color: colors.primary.withOpacity(0.3),
                 ),
               ],
             ),
@@ -105,28 +106,28 @@ class SettingsPage extends StatelessWidget {
           const SizedBox(height: 25),
 
           // ====== Container 2 ======
-          const Text(
+          Text(
             'Password and Authentication',
-            style: TextStyle(color: Colors.white, fontSize: 16),
+            style: TextStyle(color: colors.primary, fontSize: 16),
           ),
           const SizedBox(height: 10),
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Colors.grey.shade900,
+              color: colors.tertiary.withOpacity(0.15),
               borderRadius: BorderRadius.circular(10),
             ),
             child: Column(
               children: [
                 Row(
                   children: [
-                    Expanded(child: _buildDisplayTile('Password', '••••••••')),
+                    Expanded(child: _buildDisplayTile('Password', '••••••••', colors)),
                     const SizedBox(width: 10),
                     ElevatedButton(
                       onPressed: () {},
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.amber,
-                        foregroundColor: Colors.black,
+                        backgroundColor: colors.secondary,
+                        foregroundColor: colors.surface,
                         padding: const EdgeInsets.symmetric(
                           horizontal: 12,
                           vertical: 14,
@@ -140,11 +141,11 @@ class SettingsPage extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: 20),
-                const Align(
+                Align(
                   alignment: Alignment.centerLeft,
                   child: Text(
                     'Account removal',
-                    style: TextStyle(color: Colors.white, fontSize: 16),
+                    style: TextStyle(color: colors.primary, fontSize: 16),
                   ),
                 ),
                 const SizedBox(height: 12),
@@ -153,8 +154,8 @@ class SettingsPage extends StatelessWidget {
                     ElevatedButton(
                       onPressed: () {},
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.grey[700],
-                        foregroundColor: Colors.white,
+                        backgroundColor: colors.tertiary.withOpacity(0.5),
+                        foregroundColor: colors.primary,
                         padding: const EdgeInsets.symmetric(
                           horizontal: 16,
                           vertical: 14,
@@ -166,8 +167,8 @@ class SettingsPage extends StatelessWidget {
                     ElevatedButton(
                       onPressed: () {},
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.red,
-                        foregroundColor: Colors.white,
+                        backgroundColor: Colors.red, // Keep red for danger
+                        foregroundColor: colors.surface,
                         padding: const EdgeInsets.symmetric(
                           horizontal: 16,
                           vertical: 14,
@@ -188,14 +189,14 @@ class SettingsPage extends StatelessWidget {
   }
 
   // Non-editable display tile
-  Widget _buildDisplayTile(String title, String value) {
+  Widget _buildDisplayTile(String title, String value, ColorScheme colors) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 12),
       child: Container(
         width: double.infinity,
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
-          color: Colors.grey.shade800,
+          color: colors.tertiary.withOpacity(0.3),
           borderRadius: BorderRadius.circular(10),
         ),
         child: Column(
@@ -203,23 +204,16 @@ class SettingsPage extends StatelessWidget {
           children: [
             Text(
               title,
-              style: const TextStyle(color: Colors.white70, fontSize: 12),
+              style: TextStyle(color: colors.primary.withOpacity(0.7), fontSize: 12),
             ),
             const SizedBox(height: 4),
             Text(
               value,
-              style: const TextStyle(color: Colors.white, fontSize: 14),
+              style: TextStyle(color: colors.primary, fontSize: 14),
             ),
           ],
         ),
       ),
-    );
-  }
-
-  Widget _buildThemeDot(Color color) {
-    return GestureDetector(
-      onTap: () {},
-      child: CircleAvatar(radius: 14, backgroundColor: color),
     );
   }
 }
