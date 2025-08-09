@@ -14,9 +14,8 @@ class _HomePageState extends State<HomePage> {
   int _selectedIndex = 0;
 
   List<Widget> get _pages => [
-        const DashboardPage(), // Rebuilds on each access
+        const DashboardPage(),
         ChatlistsPage(),
-        const Center(child: Text("Stats Page", style: TextStyle(color: Colors.white))),
         SettingsPage(),
       ];
 
@@ -53,10 +52,6 @@ class _HomePageState extends State<HomePage> {
             BottomNavigationBarItem(
               icon: Icon(Icons.chat, size: 28),
               label: 'Chat',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.bar_chart, size: 28),
-              label: 'Stats',
             ),
             BottomNavigationBarItem(
               icon: Icon(Icons.settings, size: 28),
