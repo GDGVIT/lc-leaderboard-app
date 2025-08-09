@@ -181,44 +181,6 @@ class SettingsPage extends StatelessWidget {
             ),
           ),
 
-          const SizedBox(height: 25),
-
-          // ====== Container 3 ======
-          const Text(
-            'Appearance',
-            style: TextStyle(color: Colors.white, fontSize: 16),
-          ),
-          const SizedBox(height: 10),
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.grey.shade900,
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Choose a preferred theme for the website',
-                  style: TextStyle(color: Colors.white54, fontSize: 13),
-                ),
-                const SizedBox(height: 12),
-                Wrap(
-                  spacing: 16,
-                  children: [
-                    _buildThemeDot(Colors.pink),
-                    _buildThemeDot(Colors.red),
-                    _buildThemeDot(Colors.green),
-                    _buildThemeDot(Colors.teal),
-                    _buildThemeDot(Colors.yellow),
-                    _buildThemeDot(Colors.blueAccent),
-                    _buildThemeDot(Colors.white),
-                  ],
-                ),
-              ],
-            ),
-          ),
-
           const SizedBox(height: 100), // Extra space above the bottom
         ],
       ),

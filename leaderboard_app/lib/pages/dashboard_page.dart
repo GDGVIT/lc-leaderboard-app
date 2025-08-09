@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:leaderboard_app/components/compact_calendar.dart';
 import 'package:leaderboard_app/components/leaderboard_table.dart';
 import 'package:leaderboard_app/components/problem_table.dart';
-import 'package:leaderboard_app/components/resume_activity.dart';
+import 'package:leaderboard_app/components/daily_activity.dart';
 import 'package:leaderboard_app/components/week_view.dart';
 import 'package:leaderboard_app/components/weekly_stats.dart';
 import 'package:leaderboard_app/provider/user_provider.dart';
@@ -90,7 +90,7 @@ class DashboardPage extends StatelessWidget {
                           children: [
                             WeekView(),
                             const SizedBox(height: 10),
-                            ResumeActivity(),
+                            LeetCodeDailyCard(),
                             const SizedBox(height: 10),
                             LeaderboardTable(),
                             const SizedBox(height: 10),

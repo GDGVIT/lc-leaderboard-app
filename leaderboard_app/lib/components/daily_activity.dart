@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 
-class ResumeActivity extends StatelessWidget {
-  const ResumeActivity({super.key});
+class LeetCodeDailyCard extends StatelessWidget {
+  const LeetCodeDailyCard({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(14),
-      width: double.infinity, // ensures it stretches to match parent width
+      width: double.infinity,
       decoration: BoxDecoration(
         color: Colors.grey[850],
         borderRadius: BorderRadius.circular(8),
@@ -16,18 +16,12 @@ class ResumeActivity extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text(
-            "10. Regular Expression Matching",
+            "'Two Sum' (Easy)\n"
+            "This will later be replaced with the actual user's daily challenge.",
             style: TextStyle(
-              color: Colors.white,
+              color: Colors.white70,
               fontSize: 14,
             ),
-          ),
-          const SizedBox(height: 12),
-          LinearProgressIndicator(
-            value: 0.4,
-            color: Colors.amber,
-            minHeight: 12,
-            borderRadius: BorderRadius.circular(8),
           ),
           const SizedBox(height: 12),
           SizedBox(
@@ -40,10 +34,10 @@ class ResumeActivity extends StatelessWidget {
                 ),
               ),
               onPressed: () {
-                // TODO: Implement resume logic
+                // TODO: Replace with redirect to LeetCode daily question
               },
               child: const Text(
-                "Resume >",
+                "Go to Question >",
                 style: TextStyle(color: Colors.black),
               ),
             ),

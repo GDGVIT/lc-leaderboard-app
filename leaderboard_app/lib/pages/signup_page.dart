@@ -44,48 +44,6 @@ class SignUpPage extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   const SizedBox(height: 5),
-                  SizedBox(
-                    width: double.infinity,
-                    height: 45,
-                    child: ElevatedButton.icon(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF141316),
-                        foregroundColor: Colors.white,
-                        elevation: 2,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                      ),
-                      icon: Image.asset(
-                        'assets/icons/google.png',
-                        height: 15,
-                      ),
-                      label: const Text('Sign in with Google'),
-                      onPressed: () {
-                        // Handle Google sign-in logic
-                      },
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  Row(
-                    children: [
-                      const Expanded(
-                        child: Divider(color: Colors.white24, thickness: 1),
-                      ),
-                      const Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 12),
-                        child: Text(
-                          'Or',
-                          style: TextStyle(color: Colors.white70, fontSize: 10),
-                        ),
-                      ),
-                      const Expanded(
-                        child: Divider(color: Colors.white24, thickness: 1),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 10),
                   TextField(
                     style: const TextStyle(color: Colors.white),
                     decoration: InputDecoration(

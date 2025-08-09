@@ -12,7 +12,9 @@ void main() {
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
-        ChangeNotifierProvider(create: (_) => ChatListProvider()..loadDummyChats(),),
+        ChangeNotifierProvider(
+          create: (_) => ChatListProvider()..loadDummyChats(),
+        ),
         ChangeNotifierProvider(create: (_) => UserProvider()),
       ],
       child: const MainApp(),

@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:leaderboard_app/pages/files_page.dart';
-import 'package:leaderboard_app/pages/media_page.dart';
-import 'package:pie_chart/pie_chart.dart';
 
 class ProfilePage extends StatelessWidget {
   const ProfilePage({super.key});
+
+  final List<Map<String, String>> members = const [
+    {"name": "Alice", "avatar": "A"},
+    {"name": "Bob", "avatar": "B"},
+    {"name": "Charlie", "avatar": "C"},
+    {"name": "Diana", "avatar": "D"},
+  ];
 
   @override
   Widget build(BuildContext context) {
@@ -16,26 +20,6 @@ class ProfilePage extends StatelessWidget {
         backgroundColor: Colors.transparent,
         leading: const BackButton(),
         elevation: 0,
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 16),
-            child: ElevatedButton(
-              onPressed: () {},
-              style: ElevatedButton.styleFrom(
-                backgroundColor: theme.inversePrimary,
-                foregroundColor: Colors.black,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 14,
-                  vertical: 8,
-                ),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(6),
-                ),
-              ),
-              child: const Text("Duel Now!"),
-            ),
-          ),
-        ],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -43,7 +27,7 @@ class ProfilePage extends StatelessWidget {
           children: [
             const SizedBox(height: 10),
 
-            // Avatar
+            // Avatar & Name
             const CircleAvatar(radius: 50, backgroundColor: Colors.grey),
             const SizedBox(height: 8),
             const Text(
@@ -53,64 +37,13 @@ class ProfilePage extends StatelessWidget {
 
             const SizedBox(height: 16),
 
-            // Info Tiles
-            _infoTile(Icons.people, "Friends for:", "3 Months"),
-            _infoTile(
-              Icons.star,
-              "Rank:",
-              "Gold",
-              trailingIcon: Icons.star,
-              trailingColor: Colors.amber,
-            ),
-            _infoTile(Icons.send, "Currently on:", "Title 1"),
+            // Members Card
+            _membersCard(),
 
             const SizedBox(height: 16),
 
-            // Duel Stats
-            Container(
-              decoration: BoxDecoration(
-                color: Colors.grey.shade900,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              padding: const EdgeInsets.all(16),
-              width: double.infinity,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    "Number of Duels:",
-                    style: TextStyle(color: Colors.white, fontSize: 14),
-                  ),
-                  const SizedBox(height: 8),
-                  PieChart(
-                    dataMap: const {"Penny": 6, "You": 10},
-                    animationDuration: const Duration(milliseconds: 800),
-                    chartLegendSpacing: 16,
-                    chartRadius: 120,
-                    colorList: [Colors.grey.shade800, Colors.amber],
-                    chartType: ChartType.ring,
-                    ringStrokeWidth: 28,
-                    legendOptions: const LegendOptions(
-                      showLegends: true,
-                      legendTextStyle: TextStyle(
-                        color: Colors.white,
-                        fontSize: 12,
-                      ),
-                      legendPosition: LegendPosition.left,
-                    ),
-                    chartValuesOptions: const ChartValuesOptions(
-                      showChartValues: false,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            const SizedBox(height: 16),
-
-            // Bottom Tiles
-            _bottomTile(context, "Media", "192"),
-            _bottomTile(context, "Files", "193"),
+            // Leaderboard Card with DataTable
+            _leaderboardCard(),
 
             const SizedBox(height: 20),
           ],
@@ -119,91 +52,184 @@ class ProfilePage extends StatelessWidget {
     );
   }
 
-  Widget _infoTile(
-    IconData icon,
-    String label,
-    String value, {
-    IconData? trailingIcon,
-    Color? trailingColor,
-  }) {
+  Widget _membersCard() {
     return Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.grey.shade900,
         borderRadius: BorderRadius.circular(12),
       ),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, color: Colors.white, size: 20),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Text(
-              label,
-              style: const TextStyle(color: Colors.white, fontSize: 14),
-            ),
+          const Text(
+            "Members",
+            style: TextStyle(fontSize: 18),
           ),
-          if (trailingIcon != null)
-            Icon(trailingIcon, color: trailingColor ?? Colors.white, size: 18),
-          if (trailingIcon == null)
-            Text(
-              value,
-              style: const TextStyle(color: Colors.white, fontSize: 14),
-            ),
+          const SizedBox(height: 12),
+          ...members.map((member) {
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 10),
+              child: Row(
+                children: [
+                  CircleAvatar(
+                    radius: 18,
+                    backgroundColor: Colors.grey.shade700,
+                    child: Text(
+                      member["avatar"] ?? "?",
+                      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Text(
+                    member["name"] ?? "Unknown",
+                    style: const TextStyle(color: Colors.white70, fontSize: 16),
+                  ),
+                ],
+              ),
+            );
+          }).toList(),
         ],
       ),
     );
   }
 
-  Widget _bottomTile(BuildContext context, String title, String count) {
+  Widget _leaderboardCard() {
     return Container(
-      margin: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.all(12),
+      width: double.infinity,
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(12),
         color: Colors.grey.shade900,
-      ),
-      child: Material(
-        color:
-            Colors.transparent, // So the original container color shows through
         borderRadius: BorderRadius.circular(12),
-        child: InkWell(
-          borderRadius: BorderRadius.circular(12), // Same radius to clip ripple
-          onTap: () {
-            if (title == "Media") {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const MediaPage()),
-              );
-            } else if (title == "Files") {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const FilesPage()),
-              );
-            }
-          },
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    title,
-                    style: const TextStyle(color: Colors.white, fontSize: 14),
-                  ),
-                ),
-                Text(
-                  count,
-                  style: const TextStyle(color: Colors.white, fontSize: 14),
-                ),
-                const SizedBox(width: 6),
-                const Icon(
-                  Icons.arrow_forward_ios_rounded,
-                  size: 16,
-                  color: Colors.white54,
-                ),
-              ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start, // Align to left
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Text(
+            "Leaderboard",
+            style: TextStyle(fontSize: 18),
+          ),
+          const SizedBox(height: 12),
+          SizedBox(
+            width: double.infinity, // Stretch table to max width
+            child: const LeaderboardTable(),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class LeaderboardTable extends StatelessWidget {
+  const LeaderboardTable({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return DataTable(
+      columnSpacing: 10,
+      dataRowMinHeight: 32,
+      dataRowMaxHeight: 36,
+      headingRowHeight: 32,
+      headingRowColor: MaterialStateProperty.all(
+        Colors.grey[900],
+      ),
+      columns: const [
+        DataColumn(
+          label: Text(
+            "Place",
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 12,
             ),
           ),
+        ),
+        DataColumn(
+          label: Text(
+            "Player",
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 12,
+            ),
+          ),
+        ),
+        DataColumn(
+          label: Text(
+            "Streak",
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 12,
+            ),
+          ),
+        ),
+        DataColumn(
+          label: Text(
+            "Solved",
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 12,
+            ),
+          ),
+        ),
+        DataColumn(
+          label: Text(
+            "Badge",
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 12,
+            ),
+          ),
+        ),
+      ],
+      rows: List.generate(
+        5,
+        (index) => DataRow(
+          cells: [
+            DataCell(
+              Text(
+                "${index + 1}",
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 12,
+                ),
+              ),
+            ),
+            DataCell(
+              Text(
+                "Player ${index + 1}",
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 12,
+                ),
+              ),
+            ),
+            const DataCell(
+              Text(
+                "12",
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 12,
+                ),
+              ),
+            ),
+            const DataCell(
+              Text(
+                "1324",
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 12,
+                ),
+              ),
+            ),
+            const DataCell(
+              Icon(
+                Icons.star,
+                color: Colors.amber,
+                size: 16,
+              ),
+            ),
+          ],
         ),
       ),
     );
