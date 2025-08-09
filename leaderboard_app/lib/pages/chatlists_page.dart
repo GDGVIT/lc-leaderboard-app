@@ -6,13 +6,13 @@ import 'chat_page.dart';
 class ChatlistsPage extends StatelessWidget {
   const ChatlistsPage({super.key});
 
-  final List<String> filters = const ["All", "Unread", "Favourites", "Groups"];
+  final List<String> filters = const ["All", "Unread", "Favourites"];
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context).colorScheme;
     final chatProvider = Provider.of<ChatListProvider>(context);
-    final chatUsers = chatProvider.chatUsers;
+    final chatGroups = chatProvider.chatGroups;
 
     return Scaffold(
       backgroundColor: theme.surface,
@@ -23,19 +23,21 @@ class ChatlistsPage extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Chats title
+              // Title
               Padding(
                 padding: const EdgeInsets.only(left: 16, top: 16),
-                child: Text('Chats',
-                    style: TextStyle(
-                      color: theme.primary,
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                    )),
+                child: Text(
+                  'Group Chats',
+                  style: TextStyle(
+                    color: theme.primary,
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
               ),
               const SizedBox(height: 10),
 
-              // Search + Add Button
+              // Search + Add
               Row(
                 children: [
                   Expanded(
@@ -45,12 +47,15 @@ class ChatlistsPage extends StatelessWidget {
                         style: TextStyle(color: theme.primary),
                         decoration: InputDecoration(
                           hintText: "Search",
-                          hintStyle:
-                              TextStyle(color: theme.primary.withOpacity(0.5)),
+                          hintStyle: TextStyle(
+                            color: theme.primary.withOpacity(0.5),
+                          ),
                           filled: true,
                           fillColor: Colors.grey.shade900,
                           contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 16, vertical: 12),
+                            horizontal: 16,
+                            vertical: 12,
+                          ),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
                             borderSide: BorderSide.none,
@@ -72,54 +77,69 @@ class ChatlistsPage extends StatelessWidget {
               ),
               const SizedBox(height: 16),
 
-              // Filter Buttons
+              // Filters
               SizedBox(
                 height: 40,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: filters.map((label) {
-                    final isSelected = label == "All"; // static for now
-                    return ElevatedButton(
-                      onPressed: () {
-                        // Add filtering logic later
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: isSelected
-                            ? theme.secondary
-                            : Colors.grey.shade900,
-                        foregroundColor:
-                            isSelected ? Colors.black : theme.primary,
-                        padding: const EdgeInsets.symmetric(horizontal: 20),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(20),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 14),
+                  child: Row(
+                    children: filters.map((label) {
+                      final isSelected = label == "All"; // static for now
+                      return Expanded(
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 4),
+                          child: ElevatedButton(
+                            onPressed: () {
+                              // filtering logic later
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: isSelected
+                                  ? theme.secondary
+                                  : Colors.grey.shade900,
+                              foregroundColor:
+                                  isSelected ? Colors.black : theme.primary,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              elevation: 0,
+                            ),
+                            child: Text(
+                              label,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
                         ),
-                        elevation: 0,
-                      ),
-                      child: Text(label,
-                          style: const TextStyle(fontWeight: FontWeight.w600)),
-                    );
-                  }).toList(),
+                      );
+                    }).toList(),
+                  ),
                 ),
               ),
+
               const SizedBox(height: 16),
 
-              // Chat List
+              // Group List
               Expanded(
                 child: ListView.builder(
-                  itemCount: chatUsers.length,
+                  itemCount: chatGroups.length,
                   itemBuilder: (context, index) {
-                    final user = chatUsers[index];
+                    final group = chatGroups[index];
+                    final groupId = group["groupId"]?.toString() ?? "";
+                    final groupName =
+                        group["name"]?.toString() ?? "Unnamed Group";
+
                     return Column(
                       children: [
                         InkWell(
                           onTap: () {
-                            chatProvider.markAsRead(user["email"]);
+                            chatProvider.markGroupAsRead(groupId);
                             Navigator.push(
                               context,
                               MaterialPageRoute(
                                 builder: (context) => ChatPage(
-                                  receiverEmail: user["email"],
-                                  receiverID: user["uid"],
+                                  groupId: groupId,
+                                  groupName: groupName,
                                 ),
                               ),
                             );
@@ -131,37 +151,25 @@ class ChatlistsPage extends StatelessWidget {
                             ),
                             child: Row(
                               children: [
-                                // Profile picture
-                                Stack(
-                                  children: [
-                                    const CircleAvatar(
-                                      radius: 24,
-                                      backgroundColor: Colors.grey,
-                                    ),
-                                    Positioned(
-                                      bottom: 0,
-                                      right: 0,
-                                      child: CircleAvatar(
-                                        radius: 6,
-                                        backgroundColor: Colors.black,
-                                        child: CircleAvatar(
-                                          radius: 4,
-                                          backgroundColor: Colors.green,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
+                                // Group icon
+                                const CircleAvatar(
+                                  radius: 24,
+                                  backgroundColor: Colors.grey,
+                                  child: Icon(
+                                    Icons.group,
+                                    color: Colors.white,
+                                  ),
                                 ),
                                 const SizedBox(width: 12),
 
-                                // Name and message
+                                // Group name + last message
                                 Expanded(
                                   child: Column(
                                     crossAxisAlignment:
                                         CrossAxisAlignment.start,
                                     children: [
                                       Text(
-                                        user["name"],
+                                        groupName,
                                         style: TextStyle(
                                           color: theme.primary,
                                           fontWeight: FontWeight.bold,
@@ -170,7 +178,7 @@ class ChatlistsPage extends StatelessWidget {
                                       ),
                                       const SizedBox(height: 4),
                                       Text(
-                                        user["message"],
+                                        group["lastMessage"] ?? "",
                                         style: TextStyle(
                                           color: theme.primary.withOpacity(0.7),
                                           fontSize: 13,
@@ -181,19 +189,19 @@ class ChatlistsPage extends StatelessWidget {
                                   ),
                                 ),
 
-                                // Time and unread dot
+                                // Time + unread dot
                                 Column(
                                   crossAxisAlignment: CrossAxisAlignment.end,
                                   children: [
                                     Text(
-                                      user["time"],
+                                      group["time"]?.toString() ?? "",
                                       style: TextStyle(
                                         color: theme.primary.withOpacity(0.6),
                                         fontSize: 12,
                                       ),
                                     ),
                                     const SizedBox(height: 8),
-                                    if (user["unread"] == true)
+                                    if (group["unread"] == true)
                                       const CircleAvatar(
                                         radius: 6,
                                         backgroundColor: Colors.amber,

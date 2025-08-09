@@ -1,29 +1,48 @@
 import 'package:flutter/material.dart';
 
 class ChatListProvider extends ChangeNotifier {
-  List<Map<String, dynamic>> _chatUsers = [];
+  /// List of group chats
+  List<Map<String, dynamic>> _chatGroups = [];
 
-  List<Map<String, dynamic>> get chatUsers => _chatUsers;
+  List<Map<String, dynamic>> get chatGroups => _chatGroups;
 
-  void loadDummyChats() {
-    _chatUsers = List.generate(
-      10,
+  /// Load dummy group chats
+  void loadDummyGroups() {
+    _chatGroups = List.generate(
+      5,
       (index) => {
-        "name": "Penny Valeria",
-        "message": "Text text text text....",
-        "time": "12:35 pm",
-        "email": "user$index@example.com",
-        "uid": "uid_$index",
-        "unread": index != 0,
+        "groupId": "group_$index",
+        "name": "Group ${index + 1}",
+        "lastMessage": "This is the latest message in Group ${index + 1}",
+        "time": "12:${30 + index} pm",
+        "members": List.generate(
+          4,
+          (mIndex) => {
+            "uid": "uid_${index}_${mIndex}",
+            "name": "Member ${mIndex + 1}",
+          },
+        ),
+        "unread": index % 2 == 0, // alternate unread status
       },
     );
     notifyListeners();
   }
 
-  void markAsRead(String email) {
-    final index = _chatUsers.indexWhere((user) => user["email"] == email);
+  /// Mark a group as read
+  void markGroupAsRead(String groupId) {
+    final index = _chatGroups.indexWhere((group) => group["groupId"] == groupId);
     if (index != -1) {
-      _chatUsers[index]["unread"] = false;
+      _chatGroups[index]["unread"] = false;
+      notifyListeners();
+    }
+  }
+
+  /// Update last message for a group
+  void updateLastMessage(String groupId, String message, String time) {
+    final index = _chatGroups.indexWhere((group) => group["groupId"] == groupId);
+    if (index != -1) {
+      _chatGroups[index]["lastMessage"] = message;
+      _chatGroups[index]["time"] = time;
       notifyListeners();
     }
   }

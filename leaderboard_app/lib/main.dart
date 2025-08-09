@@ -13,7 +13,7 @@ void main() {
       providers: [
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
         ChangeNotifierProvider(
-          create: (_) => ChatListProvider()..loadDummyChats(),
+          create: (_) => ChatListProvider()..loadDummyGroups(),
         ),
         ChangeNotifierProvider(create: (_) => UserProvider()),
       ],
