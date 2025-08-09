@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:pixelarticons/pixel.dart';
 
 class ChatProvider extends ChangeNotifier {
   final String currentUserID = "uid_me";
@@ -21,6 +20,9 @@ class ChatProvider extends ChangeNotifier {
     {"id": "uid_3", "name": "Person 3", "color": Colors.green},
     {"id": "uid_4", "name": "Person 4", "color": Colors.blue},
   ];
+
+  // Expose dummyUsers publicly for other widgets to read
+  List<Map<String, dynamic>> get dummyUsers => _dummyUsers;
 
   /// Get messages for a specific group
   List<Map<String, dynamic>> getMessages(String groupId) =>

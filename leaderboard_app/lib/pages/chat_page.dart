@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:leaderboard_app/provider/chat_provider.dart';
 import 'package:pixelarticons/pixel.dart';
 import 'package:provider/provider.dart';
-import 'profile_page.dart';
+import 'groupinfo_page.dart';
 
 class ChatPage extends StatelessWidget {
   final String groupId;
@@ -81,13 +81,21 @@ class _ChatViewState extends State<ChatView> {
             onTap: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (_) => const ProfilePage()),
+                MaterialPageRoute(builder: (_) => GroupInfoPage(groupName: widget.groupName)),
               );
             },
             child: Row(
               children: [
-                const CircleAvatar(radius: 20, backgroundColor: Colors.grey),
-                const SizedBox(width: 8),
+                // Group icon
+                const CircleAvatar(
+                  radius: 20,
+                  backgroundColor: Colors.grey,
+                  child: Icon(
+                    Icons.group,
+                    color: Colors.white,
+                  ),
+                ),
+                const SizedBox(width: 12),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -97,13 +105,6 @@ class _ChatViewState extends State<ChatView> {
                         color: theme.primary,
                         fontWeight: FontWeight.bold,
                         fontSize: 16,
-                      ),
-                    ),
-                    Text(
-                      "Online",
-                      style: TextStyle(
-                        color: theme.primary.withOpacity(0.6),
-                        fontSize: 12,
                       ),
                     ),
                   ],
