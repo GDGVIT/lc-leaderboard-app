@@ -3,6 +3,7 @@ import 'package:dio/dio.dart';
 import 'package:go_router/go_router.dart';
 import 'package:leaderboard_app/services/auth/auth_service.dart';
 import 'package:leaderboard_app/provider/user_provider.dart';
+import 'package:leaderboard_app/services/user/user_service.dart';
 import 'package:provider/provider.dart';
 import 'package:leaderboard_app/services/core/error_utils.dart';
 
@@ -266,8 +267,9 @@ class _SignUpPageState extends State<SignUpPage> {
             email: res.user.email ?? '',
             streak: res.user.streak,
           );
-      // Check verification status
-      final profile = await authService.getUserProfile();
+  // Check verification status
+  final profile = await authService.getUserProfile();
+  try { await context.read<UserProvider>().fetchProfile(context.read<UserService>()); } catch (_) {}
       if (!mounted) return;
       if (!profile.leetcodeVerified) {
         context.go('/verify');

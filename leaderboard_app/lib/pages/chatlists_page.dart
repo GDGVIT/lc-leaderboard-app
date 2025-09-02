@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:leaderboard_app/provider/chatlists_provider.dart';
+import 'package:leaderboard_app/services/groups/group_service.dart';
 import 'package:provider/provider.dart';
-import 'chat_page.dart';
+import 'groupinfo_page.dart';
 
 class ChatlistsPage extends StatefulWidget {
   const ChatlistsPage({super.key});
@@ -31,6 +32,12 @@ class _ChatlistsPageState extends State<ChatlistsPage> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context).colorScheme;
     final chatProvider = Provider.of<ChatListProvider>(context);
+    // Kick off group load once
+    if (!chatProvider.isLoading && chatProvider.chatGroups.isEmpty && chatProvider.error == null) {
+      final svc = context.read<GroupService>();
+      // fire and forget
+      chatProvider.loadPublicGroups(svc);
+    }
     final filteredGroups = _applyFilter(chatProvider.chatGroups);
 
     return Scaffold(
@@ -142,14 +149,18 @@ class _ChatlistsPageState extends State<ChatlistsPage> {
 
               // Group List
               Expanded(
-                child: filteredGroups.isEmpty
-                    ? Center(
-                        child: Text(
-                          "No groups found",
-                          style: TextStyle(color: theme.primary),
-                        ),
-                      )
-                    : ListView.builder(
+                child: chatProvider.isLoading
+                    ? const Center(child: CircularProgressIndicator())
+                    : (chatProvider.error != null)
+                        ? Center(child: Text(chatProvider.error!, style: TextStyle(color: theme.primary)))
+                        : filteredGroups.isEmpty
+                            ? Center(
+                                child: Text(
+                                  "No groups found",
+                                  style: TextStyle(color: theme.primary),
+                                ),
+                              )
+                            : ListView.builder(
                         itemCount: filteredGroups.length,
                         itemBuilder: (context, index) {
                           final group = filteredGroups[index];
@@ -165,10 +176,7 @@ class _ChatlistsPageState extends State<ChatlistsPage> {
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(
-                                      builder: (context) => ChatPage(
-                                        groupId: groupId,
-                                        groupName: groupName,
-                                      ),
+                                      builder: (context) => GroupInfoPage(groupId: groupId, initialName: groupName),
                                     ),
                                   );
                                 },

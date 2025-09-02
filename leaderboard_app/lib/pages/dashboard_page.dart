@@ -8,6 +8,7 @@ import 'package:leaderboard_app/dashboard-components/weekly_stats.dart';
 import 'package:leaderboard_app/models/dashboard_models.dart';
 import 'package:leaderboard_app/provider/user_provider.dart';
 import 'package:leaderboard_app/services/dashboard/dashboard_service.dart';
+import 'package:leaderboard_app/services/user/user_service.dart';
 import 'package:provider/provider.dart';
 
 class DashboardPage extends StatefulWidget {
@@ -28,6 +29,14 @@ class _DashboardPageState extends State<DashboardPage> {
   void initState() {
     super.initState();
     _loadData();
+    // Also load user profile once if not available
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final up = context.read<UserProvider>();
+      if (up.user == null) {
+        final us = context.read<UserService>();
+        up.fetchProfile(us);
+      }
+    });
   }
 
   Future<void> _loadData() async {

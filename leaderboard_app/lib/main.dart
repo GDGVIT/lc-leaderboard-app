@@ -8,7 +8,10 @@ import 'package:leaderboard_app/router/app_router.dart';
 import 'package:leaderboard_app/services/auth/auth_service.dart';
 import 'package:leaderboard_app/services/dashboard/dashboard_service.dart';
 import 'package:leaderboard_app/services/leetcode/leetcode_service.dart';
+import 'package:leaderboard_app/services/groups/group_service.dart';
+import 'package:leaderboard_app/services/user/user_service.dart';
 import 'package:go_router/go_router.dart';
+import 'package:leaderboard_app/provider/group_provider.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -25,6 +28,8 @@ class Bootstrap extends StatelessWidget {
         AuthService.create(),
         DashboardService.create(),
         LeetCodeService.create(),
+        GroupService.create(),
+        UserService.create(),
       ]),
       builder: (context, snapshot) {
         if (!snapshot.hasData) {
@@ -36,17 +41,22 @@ class Bootstrap extends StatelessWidget {
   final authService = snapshot.data![0] as AuthService;
   final dashboardService = snapshot.data![1] as DashboardService;
   final leetCodeService = snapshot.data![2] as LeetCodeService;
+  final groupService = snapshot.data![3] as GroupService;
+  final userService = snapshot.data![4] as UserService;
   final router = createRouter();
 
   return MultiProvider(
           providers: [
             ChangeNotifierProvider(create: (_) => ThemeProvider()),
-            ChangeNotifierProvider(create: (_) => ChatListProvider()..loadDummyGroups()),
+            ChangeNotifierProvider(create: (_) => ChatListProvider()),
             ChangeNotifierProvider(create: (_) => UserProvider()),
             ChangeNotifierProvider(create: (_) => ChatProvider()),
+            ChangeNotifierProvider(create: (ctx) => GroupProvider(groupService)),
             Provider.value(value: authService),
             Provider.value(value: dashboardService),
             Provider.value(value: leetCodeService),
+            Provider.value(value: groupService),
+            Provider.value(value: userService),
           ],
     child: MainApp(router: router),
         );

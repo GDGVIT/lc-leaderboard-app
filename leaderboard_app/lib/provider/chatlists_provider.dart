@@ -1,10 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:leaderboard_app/services/groups/group_service.dart';
 
 class ChatListProvider extends ChangeNotifier {
   /// List of group chats
   List<Map<String, dynamic>> _chatGroups = [];
+  bool _isLoading = false;
+  String? _error;
 
   List<Map<String, dynamic>> get chatGroups => _chatGroups;
+  bool get isLoading => _isLoading;
+  String? get error => _error;
 
   /// Load dummy group chats
   void loadDummyGroups() {
@@ -26,6 +31,35 @@ class ChatListProvider extends ChangeNotifier {
       },
     );
     notifyListeners();
+  }
+
+  /// Load groups from backend (public groups)
+  Future<void> loadPublicGroups(GroupService service, {int page = 1, int limit = 10, String? search}) async {
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+    try {
+      final paged = await service.getAllGroups(page: page, limit: limit, search: search);
+      _chatGroups = paged.groups.map((g) {
+        return {
+          'groupId': g.id,
+          'name': g.name,
+          'lastMessage': '',
+          'time': '',
+          'members': g.members.map((m) => {
+                'uid': m.userId,
+                'name': m.user?.username ?? m.userId,
+              }).toList(),
+          'unread': false,
+          'favourite': false,
+        };
+      }).toList();
+    } catch (e) {
+      _error = 'Failed to load groups';
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
   }
 
   /// Mark a group as read

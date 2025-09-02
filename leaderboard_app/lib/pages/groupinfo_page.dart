@@ -1,33 +1,95 @@
 import 'package:flutter/material.dart';
-import 'package:leaderboard_app/provider/chat_provider.dart';
+import 'package:leaderboard_app/models/group_models.dart';
+import 'package:leaderboard_app/services/groups/group_service.dart';
+import 'package:leaderboard_app/provider/user_provider.dart';
 import 'package:provider/provider.dart';
 
-class GroupInfoPage extends StatelessWidget {
-  final String groupName;
+class GroupInfoPage extends StatefulWidget {
+  final String groupId;
+  final String? initialName;
 
-  const GroupInfoPage({super.key, required this.groupName});
+  const GroupInfoPage({super.key, required this.groupId, this.initialName});
+
+  @override
+  State<GroupInfoPage> createState() => _GroupInfoPageState();
+}
+
+class _GroupInfoPageState extends State<GroupInfoPage> {
+  Group? _group;
+  bool _loading = true;
+  String? _error;
+  bool _mutating = false;
+  String? _currentUserId;
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  Future<void> _load() async {
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+    try {
+  _currentUserId = context.read<UserProvider>().user?.id;
+      final svc = context.read<GroupService>();
+      final g = await svc.getGroupById(widget.groupId);
+      if (!mounted) return;
+      setState(() => _group = g);
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _error = 'Failed to load group');
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
+
+  bool get _isMember {
+    final uid = _currentUserId;
+    if (uid == null || _group == null) return false;
+    return _group!.members.any((m) => m.userId == uid);
+  }
+
+  bool get _isOwner {
+    final uid = _currentUserId;
+    final g = _group;
+    if (uid == null || g == null) return false;
+    if (g.creator?.id == uid || g.createdBy == uid) return true;
+    return g.members.any((m) => m.userId == uid && m.role.toUpperCase() == 'OWNER');
+  }
+
+  bool get _isAdminOrOwner {
+    final uid = _currentUserId;
+    final g = _group;
+    if (uid == null || g == null) return false;
+    if (_isOwner) return true;
+    return g.members.any((m) => m.userId == uid && (m.role.toUpperCase() == 'ADMIN' || m.role.toUpperCase() == 'MODERATOR'));
+  }
+
+  Future<void> _joinLeave() async {
+    if (_group == null) return;
+    setState(() => _mutating = true);
+    try {
+      final svc = context.read<GroupService>();
+      if (_isMember) {
+        await svc.leaveGroup(_group!.id);
+      } else {
+        await svc.joinGroup(_group!.id);
+      }
+      await _load();
+    } catch (e) {
+      setState(() => _error = 'Operation failed');
+    } finally {
+      setState(() => _mutating = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context).colorScheme;
-
-    // Get ChatProvider instance
-    final chatProvider = Provider.of<ChatProvider>(context);
-
-    // Use the dummy users from ChatProvider as members
-    final members = chatProvider.dummyUsers;
-
-    // For leaderboard, create sample data based on dummy users
-    final leaderboard = List.generate(
-      members.length,
-      (index) => {
-        "place": index + 1,
-        "player": members[index]["name"],
-        "streak": (12 + index).toString(),
-        "solved": (1324 + index * 10).toString(),
-        "badge": Icons.star,
-      },
-    );
+    final name = _group?.name ?? widget.initialName ?? 'Group';
 
     return Scaffold(
       backgroundColor: theme.surface,
@@ -35,48 +97,83 @@ class GroupInfoPage extends StatelessWidget {
         backgroundColor: Colors.transparent,
         leading: const BackButton(),
         elevation: 0,
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        child: Column(
-          children: [
-            const SizedBox(height: 10),
-
-            // Group icon
-            const CircleAvatar(
-              radius: 50,
-              backgroundColor: Colors.grey,
-              child: Icon(
-                Icons.group,
-                color: Colors.white,
-              ),
+        actions: [
+          if (_loading)
+            const Padding(
+              padding: EdgeInsets.only(right: 12),
+              child: Center(child: SizedBox(height: 18, width: 18, child: CircularProgressIndicator(strokeWidth: 2))),
             ),
-            const SizedBox(height: 8),
-
-            // Use dynamic groupName here
-            Text(
-              groupName,
-              style: const TextStyle(color: Colors.white, fontSize: 16),
-            ),
-
-            const SizedBox(height: 16),
-
-            // Members Card
-            _membersCard(members),
-
-            const SizedBox(height: 16),
-
-            // Leaderboard Card
-            _leaderboardCard(leaderboard),
-
-            const SizedBox(height: 20),
-          ],
-        ),
+          if (!_loading && _group != null && _isAdminOrOwner)
+            PopupMenuButton<String>(
+              onSelected: (value) async {
+                switch (value) {
+                  case 'edit':
+                    await _showEditGroupDialog();
+                    break;
+                  case 'delete':
+                    await _confirmDelete();
+                    break;
+                  case 'transfer':
+                    await _promptTransferOwnership();
+                    break;
+                }
+              },
+              itemBuilder: (context) => [
+                const PopupMenuItem(value: 'edit', child: Text('Edit Group')),
+                const PopupMenuItem(value: 'delete', child: Text('Delete Group')),
+                if (_isOwner) const PopupMenuItem(value: 'transfer', child: Text('Transfer Ownership')),
+              ],
       ),
+    ],
+      ),
+      body: _loading
+          ? const Center(child: CircularProgressIndicator())
+          : _error != null
+              ? Center(child: Text(_error!, style: const TextStyle(color: Colors.redAccent)))
+              : SingleChildScrollView(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Column(
+                    children: [
+                      const SizedBox(height: 10),
+
+                      const CircleAvatar(
+                        radius: 50,
+                        backgroundColor: Colors.grey,
+                        child: Icon(
+                          Icons.group,
+                          color: Colors.white,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(name, style: const TextStyle(color: Colors.white, fontSize: 16)),
+                      const SizedBox(height: 8),
+                      if (_group?.description != null)
+                        Text(
+                          _group!.description!,
+                          style: const TextStyle(color: Colors.white70),
+                          textAlign: TextAlign.center,
+                        ),
+                      const SizedBox(height: 12),
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          onPressed: _mutating ? null : _joinLeave,
+                          style: ElevatedButton.styleFrom(backgroundColor: theme.secondary),
+                          child: Text(_isMember ? 'Leave Group' : 'Join Group', style: const TextStyle(color: Colors.black)),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      _membersCard(_group?.members ?? const []),
+                      const SizedBox(height: 16),
+                      _xpTable(_group?.members ?? const []),
+                      const SizedBox(height: 20),
+                    ],
+                  ),
+                ),
     );
   }
 
-  Widget _membersCard(List<Map<String, dynamic>> members) {
+  Widget _membersCard(List<GroupMember> members) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(16),
@@ -87,168 +184,261 @@ class GroupInfoPage extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            "Members",
-            style: TextStyle(fontSize: 18),
-          ),
+          const Text('Members', style: TextStyle(fontSize: 18)),
           const SizedBox(height: 12),
-          ...members.map((member) {
-            return Padding(
-              padding: const EdgeInsets.only(bottom: 10),
-              child: Row(
-                children: [
-                  CircleAvatar(
-                    radius: 18,
-                    backgroundColor: Colors.grey.shade700,
-                    child: Text(
-                      (member["name"] != null && member["name"].isNotEmpty)
-                          ? member["name"][0]
-                          : "?",
-                      style: const TextStyle(
-                          color: Colors.white, fontWeight: FontWeight.bold),
+          ...members.map((m) => Padding(
+                padding: const EdgeInsets.only(bottom: 10),
+                child: Row(
+                  children: [
+                    CircleAvatar(
+                      radius: 18,
+                      backgroundColor: Colors.grey.shade700,
+                      child: Text(
+                        (m.user?.username.isNotEmpty == true) ? m.user!.username[0] : '?',
+                        style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                      ),
                     ),
-                  ),
-                  const SizedBox(width: 12),
-                  Text(
-                    member["name"] ?? "Unknown",
-                    style: const TextStyle(color: Colors.white70, fontSize: 16),
-                  ),
-                ],
-              ),
-            );
-          }).toList(),
+                    const SizedBox(width: 12),
+                    Text(
+                      m.user?.username ?? m.userId,
+                      style: const TextStyle(color: Colors.white70, fontSize: 16),
+                    ),
+                    const Spacer(),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(color: Colors.blueGrey.shade700, borderRadius: BorderRadius.circular(8)),
+                      child: Text(m.role, style: const TextStyle(fontSize: 12)),
+                    ),
+                    if (_isAdminOrOwner)
+                      PopupMenuButton<String>(
+                        onSelected: (value) async {
+                          switch (value) {
+                            case 'remove':
+                              await _removeMember(m);
+                              break;
+                            case 'promote':
+                              await _changeRole(m, 'ADMIN');
+                              break;
+                            case 'demote':
+                              await _changeRole(m, 'MEMBER');
+                              break;
+                            case 'makeOwner':
+                              await _transferOwnershipTo(m);
+                              break;
+                          }
+                        },
+                        itemBuilder: (context) => [
+                          const PopupMenuItem(value: 'remove', child: Text('Remove')),
+                          const PopupMenuItem(value: 'promote', child: Text('Promote to Admin')),
+                          const PopupMenuItem(value: 'demote', child: Text('Demote to Member')),
+                          if (_isOwner) const PopupMenuItem(value: 'makeOwner', child: Text('Make Owner')),
+                        ],
+                      ),
+                  ],
+                ),
+              )),
         ],
       ),
     );
   }
 
-  Widget _leaderboardCard(List<Map<String, dynamic>> leaderboard) {
+  Widget _xpTable(List<GroupMember> members) {
+    final sorted = [...members]..sort((a, b) => (b.xp).compareTo(a.xp));
     return Container(
       padding: const EdgeInsets.all(12),
       width: double.infinity,
-      decoration: BoxDecoration(
-        color: Colors.grey.shade900,
-        borderRadius: BorderRadius.circular(12),
-      ),
+      decoration: BoxDecoration(color: Colors.grey.shade900, borderRadius: BorderRadius.circular(12)),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start, // Align to left
-        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            "Leaderboard",
-            style: TextStyle(fontSize: 18),
-          ),
+          const Text('XP Leaderboard', style: TextStyle(fontSize: 18)),
           const SizedBox(height: 12),
-          SizedBox(
-            width: double.infinity, // Stretch table to max width
-            child: DataTable(
-              columnSpacing: 10,
-              dataRowMinHeight: 32,
-              dataRowMaxHeight: 36,
-              headingRowHeight: 32,
-              headingRowColor: MaterialStateProperty.all(
-                Colors.grey[900],
-              ),
-              columns: const [
-                DataColumn(
-                  label: Text(
-                    "Place",
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 12,
-                    ),
-                  ),
-                ),
-                DataColumn(
-                  label: Text(
-                    "Player",
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 12,
-                    ),
-                  ),
-                ),
-                DataColumn(
-                  label: Text(
-                    "Streak",
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 12,
-                    ),
-                  ),
-                ),
-                DataColumn(
-                  label: Text(
-                    "Solved",
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 12,
-                    ),
-                  ),
-                ),
-                DataColumn(
-                  label: Text(
-                    "Badge",
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 12,
-                    ),
-                  ),
-                ),
-              ],
-              rows: leaderboard.map((row) {
-                return DataRow(
-                  cells: [
-                    DataCell(
-                      Text(
-                        "${row["place"]}",
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 12,
-                        ),
-                      ),
-                    ),
-                    DataCell(
-                      Text(
-                        row["player"] ?? "Player",
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 12,
-                        ),
-                      ),
-                    ),
-                    DataCell(
-                      Text(
-                        row["streak"] ?? "0",
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 12,
-                        ),
-                      ),
-                    ),
-                    DataCell(
-                      Text(
-                        row["solved"] ?? "0",
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 12,
-                        ),
-                      ),
-                    ),
-                    DataCell(
-                      Icon(
-                        row["badge"] ?? Icons.star,
-                        color: Colors.amber,
-                        size: 16,
-                      ),
-                    ),
-                  ],
-                );
-              }).toList(),
-            ),
+          DataTable(
+            columnSpacing: 10,
+            dataRowMinHeight: 32,
+            dataRowMaxHeight: 36,
+            headingRowHeight: 32,
+            headingRowColor: MaterialStateProperty.all(Colors.grey[900]),
+            columns: const [
+              DataColumn(label: Text('Place', style: TextStyle(color: Colors.white, fontSize: 12))),
+              DataColumn(label: Text('Player', style: TextStyle(color: Colors.white, fontSize: 12))),
+              DataColumn(label: Text('Role', style: TextStyle(color: Colors.white, fontSize: 12))),
+              DataColumn(label: Text('XP', style: TextStyle(color: Colors.white, fontSize: 12))),
+            ],
+            rows: List.generate(sorted.length, (i) {
+              final m = sorted[i];
+              return DataRow(cells: [
+                DataCell(Text('${i + 1}', style: const TextStyle(color: Colors.white, fontSize: 12))),
+                DataCell(Text(m.user?.username ?? m.userId, style: const TextStyle(color: Colors.white, fontSize: 12))),
+                DataCell(Text(m.role, style: const TextStyle(color: Colors.white, fontSize: 12))),
+                DataCell(Text('${m.xp}', style: const TextStyle(color: Colors.white, fontSize: 12))),
+              ]);
+            }),
           ),
         ],
       ),
     );
+  }
+
+  Future<void> _showEditGroupDialog() async {
+    if (_group == null) return;
+    final nameCtrl = TextEditingController(text: _group!.name);
+    final descCtrl = TextEditingController(text: _group!.description ?? '');
+    bool isPrivate = _group!.isPrivate;
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (context) {
+        final colors = Theme.of(context).colorScheme;
+        return AlertDialog(
+          backgroundColor: Colors.grey[900],
+          title: const Text('Edit Group'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: nameCtrl,
+                decoration: const InputDecoration(labelText: 'Name'),
+              ),
+              const SizedBox(height: 8),
+              TextField(
+                controller: descCtrl,
+                decoration: const InputDecoration(labelText: 'Description'),
+              ),
+              const SizedBox(height: 8),
+              SwitchListTile(
+                title: const Text('Private'),
+                value: isPrivate,
+                onChanged: (v) => isPrivate = v,
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
+            ElevatedButton(
+              onPressed: () => Navigator.pop(context, true),
+              style: ElevatedButton.styleFrom(backgroundColor: colors.secondary, foregroundColor: Colors.black),
+              child: const Text('Save'),
+            ),
+          ],
+        );
+      },
+    );
+    if (result != true) return;
+    setState(() => _mutating = true);
+    try {
+      final svc = context.read<GroupService>();
+      await svc.updateGroup(_group!.id, name: nameCtrl.text.trim(), description: descCtrl.text.trim().isEmpty ? null : descCtrl.text.trim(), isPrivate: isPrivate);
+      await _load();
+    } catch (_) {
+      setState(() => _error = 'Failed to update group');
+    } finally {
+      setState(() => _mutating = false);
+    }
+  }
+
+  Future<void> _confirmDelete() async {
+    if (_group == null) return;
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: Colors.grey[900],
+        title: const Text('Delete Group'),
+        content: const Text('Are you sure you want to delete this group? This cannot be undone.'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
+          TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('Delete')),
+        ],
+      ),
+    );
+    if (ok != true) return;
+    setState(() => _mutating = true);
+    try {
+      final svc = context.read<GroupService>();
+      await svc.deleteGroup(_group!.id);
+      if (!mounted) return;
+      Navigator.of(context).pop();
+    } catch (_) {
+      setState(() => _error = 'Failed to delete group');
+    } finally {
+      setState(() => _mutating = false);
+    }
+  }
+
+  Future<void> _removeMember(GroupMember m) async {
+    if (_group == null) return;
+    setState(() => _mutating = true);
+    try {
+      final svc = context.read<GroupService>();
+      await svc.removeMember(_group!.id, m.userId);
+      await _load();
+    } catch (_) {
+      setState(() => _error = 'Failed to remove member');
+    } finally {
+      setState(() => _mutating = false);
+    }
+  }
+
+  Future<void> _changeRole(GroupMember m, String role) async {
+    if (_group == null) return;
+    setState(() => _mutating = true);
+    try {
+      final svc = context.read<GroupService>();
+      await svc.updateMemberRole(_group!.id, m.userId, role);
+      await _load();
+    } catch (_) {
+      setState(() => _error = 'Failed to update role');
+    } finally {
+      setState(() => _mutating = false);
+    }
+  }
+
+  Future<void> _promptTransferOwnership() async {
+    if (_group == null) return;
+    final members = _group!.members.where((m) => m.userId != _currentUserId).toList();
+    String? selectedUserId = members.isNotEmpty ? members.first.userId : null;
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: Colors.grey[900],
+        title: const Text('Transfer Ownership'),
+        content: DropdownButton<String>(
+          value: selectedUserId,
+          items: members
+              .map((m) => DropdownMenuItem(
+                    value: m.userId,
+                    child: Text(m.user?.username ?? m.userId),
+                  ))
+              .toList(),
+          onChanged: (v) {
+            selectedUserId = v;
+          },
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
+          TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('Transfer')),
+        ],
+      ),
+    );
+    if (ok == true && selectedUserId != null) {
+      await _transferOwnershipToUserId(selectedUserId!);
+    }
+  }
+
+  Future<void> _transferOwnershipTo(GroupMember m) async {
+    await _transferOwnershipToUserId(m.userId);
+  }
+
+  Future<void> _transferOwnershipToUserId(String userId) async {
+    if (_group == null) return;
+    setState(() => _mutating = true);
+    try {
+      final svc = context.read<GroupService>();
+      await svc.transferOwnership(_group!.id, userId);
+      await _load();
+    } catch (_) {
+      setState(() => _error = 'Failed to transfer ownership');
+    } finally {
+      setState(() => _mutating = false);
+    }
   }
 }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:leaderboard_app/services/auth/auth_service.dart';
 import 'package:leaderboard_app/provider/user_provider.dart';
+import 'package:leaderboard_app/services/user/user_service.dart';
 import 'package:provider/provider.dart';
 
 class SettingsPage extends StatelessWidget {
@@ -11,6 +12,14 @@ class SettingsPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colors = theme.colorScheme;
+
+    // trigger profile fetch if not yet
+    final up = context.watch<UserProvider>();
+    if (up.user == null && !up.isLoading && up.error == null) {
+      // fire and forget
+      final svc = context.read<UserService>();
+      up.fetchProfile(svc);
+    }
 
     return Scaffold(
       backgroundColor: colors.surface,
