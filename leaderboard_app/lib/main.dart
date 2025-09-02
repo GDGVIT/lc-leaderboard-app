@@ -12,6 +12,7 @@ import 'package:leaderboard_app/services/groups/group_service.dart';
 import 'package:leaderboard_app/services/user/user_service.dart';
 import 'package:go_router/go_router.dart';
 import 'package:leaderboard_app/provider/group_provider.dart';
+import 'package:leaderboard_app/provider/dashboard_provider.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -52,6 +53,7 @@ class Bootstrap extends StatelessWidget {
             ChangeNotifierProvider(create: (_) => UserProvider()),
             ChangeNotifierProvider(create: (_) => ChatProvider()),
             ChangeNotifierProvider(create: (ctx) => GroupProvider(groupService)),
+            ChangeNotifierProvider(create: (ctx) => DashboardProvider(service: dashboardService, userProvider: ctx.read<UserProvider>())),
             Provider.value(value: authService),
             Provider.value(value: dashboardService),
             Provider.value(value: leetCodeService),

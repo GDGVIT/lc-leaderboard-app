@@ -12,25 +12,38 @@ class DashboardService {
   }
 
   Future<List<SubmissionItem>> getUserSubmissions() async {
-    final res = await _dio.get('/dashboard/submissions');
-    final data = (res.data as Map<String, dynamic>)['data'] as Map<String, dynamic>;
-    final list = (data['submissions'] as List<dynamic>).cast<Map<String, dynamic>>();
-    return list.map(SubmissionItem.fromJson).toList();
+  final res = await _dio.get('/dashboard/submissions');
+  final body = res.data as Map<String, dynamic>;
+  final data = (body['data'] ?? body) as Map<String, dynamic>;
+  final raw = (data['submissions'] ?? data['items'] ?? data['results'] ?? data) as dynamic;
+  final list = raw is List
+    ? raw.cast<Map<String, dynamic>>()
+    : (raw is Map<String, dynamic> && raw['submissions'] is List)
+      ? (raw['submissions'] as List).cast<Map<String, dynamic>>()
+      : <Map<String, dynamic>>[];
+  return list.map(SubmissionItem.fromJson).toList();
   }
 
   Future<DailyQuestion?> getDailyQuestion() async {
-    final res = await _dio.get('/dashboard/daily');
-    final data = (res.data as Map<String, dynamic>)['data'] as Map<String, dynamic>;
-    final dq = data['dailyQuestion'];
-    if (dq == null) return null;
-    return DailyQuestion.fromJson(dq as Map<String, dynamic>);
+  final res = await _dio.get('/dashboard/daily');
+  final body = res.data as Map<String, dynamic>;
+  final data = (body['data'] ?? body) as Map<String, dynamic>;
+  final dq = (data['dailyQuestion'] ?? data['daily'] ?? data['question'] ?? data) as dynamic;
+  if (dq is Map<String, dynamic>) return DailyQuestion.fromJson(dq);
+  return null;
   }
 
   Future<List<TopUser>> getTopUsers() async {
-    final res = await _dio.get('/dashboard/leaderboard');
-    final data = (res.data as Map<String, dynamic>)['data'] as Map<String, dynamic>;
-    final list = (data['leaderboard'] as List<dynamic>).cast<Map<String, dynamic>>();
-    return list.map(TopUser.fromJson).toList();
+  final res = await _dio.get('/dashboard/leaderboard');
+  final body = res.data as Map<String, dynamic>;
+  final data = (body['data'] ?? body) as Map<String, dynamic>;
+  final raw = (data['leaderboard'] ?? data['users'] ?? data['results'] ?? data) as dynamic;
+  final list = raw is List
+    ? raw.cast<Map<String, dynamic>>()
+    : (raw is Map<String, dynamic> && raw['leaderboard'] is List)
+      ? (raw['leaderboard'] as List).cast<Map<String, dynamic>>()
+      : <Map<String, dynamic>>[];
+  return list.map(TopUser.fromJson).toList();
   }
 
   // New: explicit getLeaderboard support. Tries /leaderboard first, falls back to /dashboard/leaderboard.

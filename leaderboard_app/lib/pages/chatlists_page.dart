@@ -14,6 +14,21 @@ class ChatlistsPage extends StatefulWidget {
 class _ChatlistsPageState extends State<ChatlistsPage> {
   final List<String> filters = const ["All", "Unread", "Favourites"];
   String selectedFilter = "All";
+  bool _loadedOnce = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || _loadedOnce) return;
+      _loadedOnce = true;
+      final chatProvider = context.read<ChatListProvider>();
+      if (!chatProvider.isLoading && chatProvider.chatGroups.isEmpty && chatProvider.error == null) {
+        final svc = context.read<GroupService>();
+        chatProvider.loadPublicGroups(svc);
+      }
+    });
+  }
 
   List<Map<String, dynamic>> _applyFilter(List<Map<String, dynamic>> chatGroups) {
     switch (selectedFilter) {
@@ -31,13 +46,7 @@ class _ChatlistsPageState extends State<ChatlistsPage> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context).colorScheme;
-    final chatProvider = Provider.of<ChatListProvider>(context);
-    // Kick off group load once
-    if (!chatProvider.isLoading && chatProvider.chatGroups.isEmpty && chatProvider.error == null) {
-      final svc = context.read<GroupService>();
-      // fire and forget
-      chatProvider.loadPublicGroups(svc);
-    }
+  final chatProvider = Provider.of<ChatListProvider>(context);
     final filteredGroups = _applyFilter(chatProvider.chatGroups);
 
     return Scaffold(

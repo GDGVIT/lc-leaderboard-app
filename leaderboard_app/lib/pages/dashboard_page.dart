@@ -5,10 +5,11 @@ import 'package:leaderboard_app/dashboard-components/problem_table.dart';
 import 'package:leaderboard_app/dashboard-components/daily_activity.dart';
 import 'package:leaderboard_app/dashboard-components/week_view.dart';
 import 'package:leaderboard_app/dashboard-components/weekly_stats.dart';
-import 'package:leaderboard_app/models/dashboard_models.dart';
 import 'package:leaderboard_app/provider/user_provider.dart';
-import 'package:leaderboard_app/services/dashboard/dashboard_service.dart';
+// models via provider components
+// import 'package:leaderboard_app/models/dashboard_models.dart';
 import 'package:leaderboard_app/services/user/user_service.dart';
+import 'package:leaderboard_app/provider/dashboard_provider.dart';
 import 'package:provider/provider.dart';
 
 class DashboardPage extends StatefulWidget {
@@ -19,16 +20,16 @@ class DashboardPage extends StatefulWidget {
 }
 
 class _DashboardPageState extends State<DashboardPage> {
-  bool _loading = true;
-  List<SubmissionItem> _submissions = const [];
-  List<TopUser> _topUsers = const [];
-  DailyQuestion? _daily;
-  String? _error;
+  String? _error; // page-level error
 
   @override
   void initState() {
     super.initState();
-    _loadData();
+    // Start loading all dashboard data via provider
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final dp = context.read<DashboardProvider>();
+      dp.loadAll();
+    });
     // Also load user profile once if not available
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final up = context.read<UserProvider>();
@@ -39,33 +40,7 @@ class _DashboardPageState extends State<DashboardPage> {
     });
   }
 
-  Future<void> _loadData() async {
-    setState(() {
-      _loading = true;
-      _error = null;
-    });
-    try {
-      final service = context.read<DashboardService>();
-      final results = await Future.wait([
-        service.getUserSubmissions(),
-        service.getTopUsers(),
-        service.getDailyQuestion(),
-      ]);
-      if (!mounted) return;
-      setState(() {
-        _submissions = results[0] as List<SubmissionItem>;
-        _topUsers = results[1] as List<TopUser>;
-        _daily = results[2] as DailyQuestion?;
-      });
-    } catch (e) {
-      if (!mounted) return;
-      setState(() => _error = 'Failed to load dashboard');
-    } finally {
-      if (mounted) {
-        setState(() => _loading = false);
-      }
-    }
-  }
+  // legacy loader removed; using DashboardProvider
 
   @override
   Widget build(BuildContext context) {
@@ -149,20 +124,27 @@ class _DashboardPageState extends State<DashboardPage> {
                           children: [
                             const WeekView(),
                             const SizedBox(height: 10),
-                            if (_loading)
-                              _loadingCard(height: 90)
-                            else
-                              LeetCodeDailyCard(daily: _daily),
+                            Consumer<DashboardProvider>(
+                              builder: (_, dp, __) => dp.loadingDaily
+                                  ? _loadingCard(height: 90)
+                                  : LeetCodeDailyCard(daily: dp.daily),
+                            ),
                             const SizedBox(height: 10),
-                            if (_loading)
-                              _loadingCard(height: 180)
-                            else
-                              LeaderboardTable(users: _topUsers),
+                            Consumer<DashboardProvider>(
+                              builder: (_, dp, __) => dp.loadingLeaders
+                                  ? _loadingCard(height: 180)
+                                  : LeaderboardTable(users: dp.leaderboard),
+                            ),
                             const SizedBox(height: 10),
-                            if (_loading)
-                              _loadingCard(height: 180)
-                            else
-                              ProblemTable(submissions: _submissions),
+                            Consumer<DashboardProvider>(
+                              builder: (_, dp, __) {
+                                if (dp.loadingSubs) return _loadingCard(height: 180);
+                                if (!dp.isVerified) {
+                                  return _verifyCard();
+                                }
+                                return ProblemTable(submissions: dp.submissions);
+                              },
+                            ),
                             const SizedBox(height: 10),
                             const WeeklyStats(),
                             const SizedBox(height: 10),
@@ -215,6 +197,27 @@ class _DashboardPageState extends State<DashboardPage> {
         width: 20,
         height: 20,
         child: CircularProgressIndicator(strokeWidth: 2),
+      ),
+    );
+  }
+
+  Widget _verifyCard() {
+    return Container(
+      width: double.infinity,
+      height: 160,
+      decoration: BoxDecoration(
+        color: Colors.grey[850],
+        borderRadius: BorderRadius.circular(12),
+      ),
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: const [
+          Text('Connect your LeetCode account to see recent submissions and streaks',
+              style: TextStyle(color: Colors.white70)),
+          SizedBox(height: 8),
+          Text('Go to Settings > Verify LeetCode', style: TextStyle(color: Colors.white54, fontSize: 12)),
+        ],
       ),
     );
   }
