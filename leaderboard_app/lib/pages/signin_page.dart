@@ -191,8 +191,14 @@ class _SignInPageState extends State<SignInPage> {
             email: res.user.email ?? '',
             streak: res.user.streak,
           );
+      // Fetch current profile to check verification
+      final profile = await authService.getUserProfile();
       if (!mounted) return;
-      context.go('/');
+      if (!profile.leetcodeVerified) {
+        context.go('/verify');
+      } else {
+        context.go('/');
+      }
     } on DioException catch (e) {
       setState(() {
         _error = ErrorUtils.fromDio(e);

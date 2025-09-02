@@ -7,6 +7,7 @@ import 'package:provider/provider.dart';
 import 'package:leaderboard_app/router/app_router.dart';
 import 'package:leaderboard_app/services/auth/auth_service.dart';
 import 'package:leaderboard_app/services/dashboard/dashboard_service.dart';
+import 'package:leaderboard_app/services/leetcode/leetcode_service.dart';
 import 'package:go_router/go_router.dart';
 
 void main() {
@@ -23,6 +24,7 @@ class Bootstrap extends StatelessWidget {
       future: Future.wait([
         AuthService.create(),
         DashboardService.create(),
+        LeetCodeService.create(),
       ]),
       builder: (context, snapshot) {
         if (!snapshot.hasData) {
@@ -31,8 +33,9 @@ class Bootstrap extends StatelessWidget {
             home: Scaffold(body: Center(child: CircularProgressIndicator())),
           );
         }
-        final authService = snapshot.data![0] as AuthService;
-        final dashboardService = snapshot.data![1] as DashboardService;
+  final authService = snapshot.data![0] as AuthService;
+  final dashboardService = snapshot.data![1] as DashboardService;
+  final leetCodeService = snapshot.data![2] as LeetCodeService;
   final router = createRouter();
 
   return MultiProvider(
@@ -43,6 +46,7 @@ class Bootstrap extends StatelessWidget {
             ChangeNotifierProvider(create: (_) => ChatProvider()),
             Provider.value(value: authService),
             Provider.value(value: dashboardService),
+            Provider.value(value: leetCodeService),
           ],
     child: MainApp(router: router),
         );

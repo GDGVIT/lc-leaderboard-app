@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:leaderboard_app/pages/home_page.dart';
 import 'package:leaderboard_app/pages/signin_page.dart';
 import 'package:leaderboard_app/pages/signup_page.dart';
+import 'package:leaderboard_app/pages/leetcode_verification_page.dart';
 
 Future<bool> _isLoggedIn() async {
   final prefs = await SharedPreferences.getInstance();
@@ -19,8 +20,8 @@ GoRouter createRouter() {
     redirect: (context, state) async {
       final loggedIn = await _isLoggedIn();
       final atAuth = state.matchedLocation == '/signin' || state.matchedLocation == '/signup';
-      if (!loggedIn && !atAuth) return '/signin';
-      if (loggedIn && atAuth) return '/';
+  if (!loggedIn && !atAuth) return '/signin';
+  if (loggedIn && atAuth) return '/';
       return null;
     },
     routes: [
@@ -35,6 +36,10 @@ GoRouter createRouter() {
       GoRoute(
         path: '/signup',
         builder: (context, state) => const SignUpPage(),
+      ),
+      GoRoute(
+        path: '/verify',
+        builder: (context, state) => const LeetCodeVerificationPage(),
       ),
     ],
   );
