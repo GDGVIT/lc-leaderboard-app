@@ -1,8 +1,30 @@
 import 'package:flutter/material.dart';
-import 'package:leaderboard_app/pages/signup_page.dart';
+import 'package:dio/dio.dart';
+import 'package:go_router/go_router.dart';
+import 'package:leaderboard_app/services/auth/auth_service.dart';
+import 'package:leaderboard_app/provider/user_provider.dart';
+import 'package:provider/provider.dart';
+import 'package:leaderboard_app/services/core/error_utils.dart';
 
-class SignInPage extends StatelessWidget {
+class SignInPage extends StatefulWidget {
   const SignInPage({super.key});
+
+  @override
+  State<SignInPage> createState() => _SignInPageState();
+}
+
+class _SignInPageState extends State<SignInPage> {
+  final _emailCtrl = TextEditingController();
+  final _passwordCtrl = TextEditingController();
+  bool _loading = false;
+  String? _error;
+
+  @override
+  void dispose() {
+    _emailCtrl.dispose();
+    _passwordCtrl.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -47,6 +69,7 @@ class SignInPage extends StatelessWidget {
                   children: [
                     const SizedBox(height: 5),
                     TextField(
+                      controller: _emailCtrl,
                       style: const TextStyle(color: Colors.white),
                       decoration: InputDecoration(
                         filled: true,
@@ -62,6 +85,7 @@ class SignInPage extends StatelessWidget {
                     const SizedBox(height: 16),
                     TextField(
                       obscureText: true,
+                      controller: _passwordCtrl,
                       style: const TextStyle(color: Colors.white),
                       decoration: InputDecoration(
                         filled: true,
@@ -86,6 +110,11 @@ class SignInPage extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 10),
+                    if (_error != null)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 8.0),
+                        child: Text(_error!, style: const TextStyle(color: Colors.redAccent)),
+                      ),
                     SizedBox(
                       width: double.infinity,
                       height: 45,
@@ -96,14 +125,20 @@ class SignInPage extends StatelessWidget {
                             borderRadius: BorderRadius.circular(8),
                           ),
                         ),
-                        onPressed: () {},
-                        child: const Text(
-                          'Sign In',
-                          style: TextStyle(
-                            color: Colors.black,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
+                        onPressed: _loading ? null : _onSignIn,
+                        child: _loading
+                            ? const SizedBox(
+                                width: 18,
+                                height: 18,
+                                child: CircularProgressIndicator(strokeWidth: 2, color: Colors.black),
+                              )
+                            : const Text(
+                                'Sign In',
+                                style: TextStyle(
+                                  color: Colors.black,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
                       ),
                     ),
                     Padding(
@@ -117,11 +152,7 @@ class SignInPage extends StatelessWidget {
                           ),
                           GestureDetector(
                             onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(builder: (context) => const SignUpPage(),
-                                ),
-                              );
+                              context.go('/signup');
                             },
                             child: const Text(
                               "Sign up",
@@ -144,5 +175,38 @@ class SignInPage extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  Future<void> _onSignIn() async {
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+    try {
+      final authService = context.read<AuthService>();
+      final res = await authService.signIn(email: _emailCtrl.text.trim(), password: _passwordCtrl.text);
+      // Update user provider
+      context.read<UserProvider>().updateUser(
+            name: res.user.username,
+            email: res.user.email ?? '',
+            streak: res.user.streak,
+          );
+      if (!mounted) return;
+      context.go('/');
+    } on DioException catch (e) {
+      setState(() {
+        _error = ErrorUtils.fromDio(e);
+      });
+    } catch (e) {
+      setState(() {
+        _error = 'Something went wrong';
+      });
+    } finally {
+      if (mounted) {
+        setState(() {
+          _loading = false;
+        });
+      }
+    }
   }
 }

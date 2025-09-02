@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:leaderboard_app/models/dashboard_models.dart';
 
 class LeaderboardTable extends StatelessWidget {
-  const LeaderboardTable({super.key});
+  final List<TopUser> users;
+  const LeaderboardTable({super.key, required this.users});
 
   @override
   Widget build(BuildContext context) {
@@ -12,7 +14,7 @@ class LeaderboardTable extends StatelessWidget {
         color: Colors.grey[850],
         borderRadius: BorderRadius.circular(12),
       ),
-      child: DataTable(
+  child: DataTable(
         columnSpacing: 10,
         dataRowMinHeight: 32,
         dataRowMaxHeight: 36,
@@ -68,7 +70,7 @@ class LeaderboardTable extends StatelessWidget {
           ),
         ],
         rows: List.generate(
-          5,
+          users.length,
           (index) => DataRow(
             cells: [
               DataCell(
@@ -82,31 +84,21 @@ class LeaderboardTable extends StatelessWidget {
               ),
               DataCell(
                 Text(
-                  "Player ${index + 1}",
+                  users[index].username,
                   style: const TextStyle(
                     color: Colors.white,
                     fontSize: 12,
                   ),
                 ),
               ),
-              const DataCell(
-                Text(
-                  "12",
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 12,
-                  ),
-                ),
-              ),
-              const DataCell(
-                Text(
-                  "1324",
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 12,
-                  ),
-                ),
-              ),
+              DataCell(Text(
+                "${users[index].streak}",
+                style: const TextStyle(color: Colors.white, fontSize: 12),
+              )),
+              DataCell(Text(
+                "${users[index].totalSolved}",
+                style: const TextStyle(color: Colors.white, fontSize: 12),
+              )),
               const DataCell(
                 Icon(
                   Icons.star,

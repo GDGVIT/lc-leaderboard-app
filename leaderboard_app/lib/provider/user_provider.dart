@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 class UserProvider extends ChangeNotifier {
   String _name = 'First Name Last Name';
   String _email = 'username@email.com';
-  int _streak = 8;
+  int _streak = 0;
 
   String get name => _name;
   String get email => _email;

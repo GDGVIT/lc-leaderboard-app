@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import 'package:leaderboard_app/services/auth/auth_service.dart';
+import 'package:leaderboard_app/provider/user_provider.dart';
+import 'package:provider/provider.dart';
 
 class SettingsPage extends StatelessWidget {
   const SettingsPage({super.key});
@@ -17,7 +21,7 @@ class SettingsPage extends StatelessWidget {
         elevation: 0,
         foregroundColor: colors.primary,
       ),
-      body: ListView(
+  body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
 
@@ -28,7 +32,17 @@ class SettingsPage extends StatelessWidget {
           ),
           const SizedBox(height: 10),
 
-          Container(
+          Consumer<UserProvider>(
+            builder: (context, user, _) {
+              final name = (user.name).trim();
+              final parts = name.split(RegExp(r"\s+"));
+              final firstName = parts.isNotEmpty && parts.first.isNotEmpty ? parts.first : '-';
+              final lastName = parts.length > 1 ? parts.sublist(1).join(' ') : '';
+              final username = name.isNotEmpty ? name : '-';
+              final email = (user.email).isNotEmpty ? user.email : '-';
+              final streak = user.streak;
+
+              return Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
               color: colors.tertiary.withOpacity(0.15),
@@ -71,9 +85,9 @@ class SettingsPage extends StatelessWidget {
                 // First & Last Name side-by-side
                 Row(
                   children: [
-                    Expanded(child: _buildDisplayTile('First Name', 'Penny', colors)),
+                    Expanded(child: _buildDisplayTile('First Name', firstName, colors)),
                     const SizedBox(width: 10),
-                    Expanded(child: _buildDisplayTile('Last Name', 'Valeria', colors)),
+                    Expanded(child: _buildDisplayTile('Last Name', lastName.isEmpty ? '-' : lastName, colors)),
                   ],
                 ),
                 Divider(
@@ -81,19 +95,19 @@ class SettingsPage extends StatelessWidget {
                   thickness: 0.6,
                   color: colors.primary.withOpacity(0.3),
                 ),
-                _buildDisplayTile('Username', '@pennyval', colors),
+                _buildDisplayTile('Username', '@$username', colors),
                 Divider(
                   height: 1,
                   thickness: 0.6,
                   color: colors.primary.withOpacity(0.3),
                 ),
-                _buildDisplayTile('Email', 'penny@example.com', colors),
+                _buildDisplayTile('Email', email, colors),
                 Divider(
                   height: 1,
                   thickness: 0.6,
                   color: colors.primary.withOpacity(0.3),
                 ),
-                _buildDisplayTile('Phone Number', '+91 1234567890', colors),
+                _buildDisplayTile('Streak', streak.toString(), colors),
                 Divider(
                   height: 1,
                   thickness: 0.6,
@@ -101,6 +115,8 @@ class SettingsPage extends StatelessWidget {
                 ),
               ],
             ),
+          );
+            },
           ),
 
           const SizedBox(height: 25),
@@ -182,7 +198,32 @@ class SettingsPage extends StatelessWidget {
             ),
           ),
 
-          const SizedBox(height: 100), // Extra space above the bottom
+          const SizedBox(height: 20), // Extra space above the bottom
+
+          // ====== Logout button (full-width) ======
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton.icon(
+              icon: const Icon(Icons.logout),
+              label: const Text(
+                'Log out',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+              ),
+              onPressed: () async {
+                await context.read<AuthService>().logout();
+                if (!context.mounted) return;
+                context.go('/signin');
+              },
+              style: ElevatedButton.styleFrom(
+                minimumSize: const Size.fromHeight(52),
+                backgroundColor: Colors.red,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+            ),
+          ),
         ],
       ),
     );

@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:leaderboard_app/models/dashboard_models.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class LeetCodeDailyCard extends StatelessWidget {
-  const LeetCodeDailyCard({super.key});
+  final DailyQuestion? daily;
+  const LeetCodeDailyCard({super.key, required this.daily});
 
   @override
   Widget build(BuildContext context) {
@@ -15,10 +18,11 @@ class LeetCodeDailyCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            "'Two Sum' (Easy)\n"
-            "This will later be replaced with the actual user's daily challenge.",
-            style: TextStyle(
+          Text(
+            daily == null
+                ? 'Daily question unavailable'
+                : "${daily!.questionTitle} (${daily!.difficulty})\n${daily!.questionLink}",
+            style: const TextStyle(
               color: Colors.white70,
               fontSize: 14,
             ),
@@ -33,13 +37,16 @@ class LeetCodeDailyCard extends StatelessWidget {
                   borderRadius: BorderRadius.circular(8),
                 ),
               ),
-              onPressed: () {
-                // TODO: Replace with redirect to LeetCode daily question
-              },
-              child: const Text(
-                "Go to Question >",
-                style: TextStyle(color: Colors.black),
-              ),
+              onPressed: daily?.questionLink == null
+                  ? null
+                  : () async {
+                      final url = Uri.parse(daily!.questionLink);
+                      if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
+                        // ignore: avoid_print
+                        print('Could not launch $url');
+                      }
+                    },
+              child: const Text("Go to Question >", style: TextStyle(color: Colors.black)),
             ),
           ),
         ],

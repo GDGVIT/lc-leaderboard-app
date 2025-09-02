@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:leaderboard_app/models/dashboard_models.dart';
 
 class ProblemTable extends StatelessWidget {
-  const ProblemTable({super.key});
+  final List<SubmissionItem> submissions;
+  const ProblemTable({super.key, required this.submissions});
 
   @override
   Widget build(BuildContext context) {
@@ -12,7 +14,7 @@ class ProblemTable extends StatelessWidget {
         color: Colors.grey[850],
         borderRadius: BorderRadius.circular(12),
       ),
-      child: DataTable(
+  child: DataTable(
         columnSpacing: 10,
         dataRowMinHeight: 32,
         dataRowMaxHeight: 36,
@@ -68,7 +70,7 @@ class ProblemTable extends StatelessWidget {
           ),
         ],
         rows: List.generate(
-          4,
+          submissions.length,
           (index) => DataRow(
             cells: [
               DataCell(
@@ -80,40 +82,32 @@ class ProblemTable extends StatelessWidget {
                   ),
                 ),
               ),
-              const DataCell(
-                Text(
-                  "Problem",
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 12,
-                  ),
+              DataCell(Text(
+                submissions[index].title,
+                style: const TextStyle(color: Colors.white, fontSize: 12),
+              )),
+              DataCell(Text(
+                "${submissions[index].acRate.toStringAsFixed(0)}%",
+                style: const TextStyle(color: Colors.white, fontSize: 12),
+              )),
+              DataCell(Text(
+                submissions[index].difficulty,
+                style: TextStyle(
+                  color: submissions[index].difficulty.toLowerCase() == 'easy'
+                      ? Colors.green
+                      : submissions[index].difficulty.toLowerCase() == 'medium'
+                          ? Colors.orange
+                          : Colors.red,
+                  fontSize: 12,
                 ),
-              ),
-              const DataCell(
-                Text(
-                  "56%",
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 12,
-                  ),
-                ),
-              ),
-              const DataCell(
-                Text(
-                  "Easy",
-                  style: TextStyle(
-                    color: Colors.green,
-                    fontSize: 12,
-                  ),
-                ),
-              ),
-              const DataCell(
-                Icon(
-                  Icons.circle,
-                  color: Colors.green,
-                  size: 10,
-                ),
-              ),
+              )),
+              DataCell(Icon(
+                Icons.circle,
+                color: submissions[index].statusDisplay.toLowerCase() == 'accepted'
+                    ? Colors.green
+                    : Colors.grey,
+                size: 10,
+              )),
             ],
           ),
         ),

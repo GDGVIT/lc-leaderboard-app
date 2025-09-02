@@ -5,11 +5,58 @@ import 'package:leaderboard_app/dashboard-components/problem_table.dart';
 import 'package:leaderboard_app/dashboard-components/daily_activity.dart';
 import 'package:leaderboard_app/dashboard-components/week_view.dart';
 import 'package:leaderboard_app/dashboard-components/weekly_stats.dart';
+import 'package:leaderboard_app/models/dashboard_models.dart';
 import 'package:leaderboard_app/provider/user_provider.dart';
+import 'package:leaderboard_app/services/dashboard/dashboard_service.dart';
 import 'package:provider/provider.dart';
 
-class DashboardPage extends StatelessWidget {
+class DashboardPage extends StatefulWidget {
   const DashboardPage({super.key});
+
+  @override
+  State<DashboardPage> createState() => _DashboardPageState();
+}
+
+class _DashboardPageState extends State<DashboardPage> {
+  bool _loading = true;
+  List<SubmissionItem> _submissions = const [];
+  List<TopUser> _topUsers = const [];
+  DailyQuestion? _daily;
+  String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadData();
+  }
+
+  Future<void> _loadData() async {
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+    try {
+      final service = context.read<DashboardService>();
+      final results = await Future.wait([
+        service.getUserSubmissions(),
+        service.getTopUsers(),
+        service.getDailyQuestion(),
+      ]);
+      if (!mounted) return;
+      setState(() {
+        _submissions = results[0] as List<SubmissionItem>;
+        _topUsers = results[1] as List<TopUser>;
+        _daily = results[2] as DailyQuestion?;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _error = 'Failed to load dashboard');
+    } finally {
+      if (mounted) {
+        setState(() => _loading = false);
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -93,15 +140,28 @@ class DashboardPage extends StatelessWidget {
                           children: [
                             const WeekView(),
                             const SizedBox(height: 10),
-                            const LeetCodeDailyCard(),
+                            if (_loading)
+                              _loadingCard(height: 90)
+                            else
+                              LeetCodeDailyCard(daily: _daily),
                             const SizedBox(height: 10),
-                            const LeaderboardTable(),
+                            if (_loading)
+                              _loadingCard(height: 180)
+                            else
+                              LeaderboardTable(users: _topUsers),
                             const SizedBox(height: 10),
-                            const ProblemTable(),
+                            if (_loading)
+                              _loadingCard(height: 180)
+                            else
+                              ProblemTable(submissions: _submissions),
                             const SizedBox(height: 10),
                             const WeeklyStats(),
                             const SizedBox(height: 10),
                             const CompactCalendar(),
+                            if (_error != null) ...[
+                              const SizedBox(height: 10),
+                              Text(_error!, style: const TextStyle(color: Colors.redAccent)),
+                            ],
                           ],
                         ),
                       ),
@@ -129,6 +189,23 @@ class DashboardPage extends StatelessWidget {
           const SizedBox(width: 4),
           Text(label, style: const TextStyle(color: Colors.white)),
         ],
+      ),
+    );
+  }
+
+  Widget _loadingCard({double height = 120}) {
+    return Container(
+      width: double.infinity,
+      height: height,
+      decoration: BoxDecoration(
+        color: Colors.grey[850],
+        borderRadius: BorderRadius.circular(12),
+      ),
+      alignment: Alignment.center,
+      child: const SizedBox(
+        width: 20,
+        height: 20,
+        child: CircularProgressIndicator(strokeWidth: 2),
       ),
     );
   }
