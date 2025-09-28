@@ -1,26 +1,19 @@
 import 'dart:async';
 import 'package:dio/dio.dart';
-import 'package:flutter/foundation.dart' show kIsWeb, defaultTargetPlatform, TargetPlatform;
+import 'package:flutter/foundation.dart' show kIsWeb; // narrow imports
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:leaderboard_app/config/api_config.dart';
 
 /// Provides a configured singleton Dio instance with auth header + logging.
 class DioProvider {
   static Dio? _dio;
-
-  static String _defaultBaseUrl() {
-    const fromEnv = String.fromEnvironment('BASE_URL');
-    if (fromEnv.isNotEmpty) return fromEnv;
-    if (kIsWeb) return 'http://localhost:3000/api';
-    if (defaultTargetPlatform == TargetPlatform.android) return 'http://10.0.2.2:3000/api';
-    return 'http://localhost:3000/api';
-  }
 
   static Future<Dio> getInstance({String? baseUrl}) async {
     if (_dio != null) return _dio!;
     final prefs = await SharedPreferences.getInstance();
     final dio = Dio(
       BaseOptions(
-        baseUrl: baseUrl ?? _defaultBaseUrl(),
+        baseUrl: baseUrl ?? ApiConfig.baseUrl,
         connectTimeout: const Duration(seconds: 10),
         receiveTimeout: const Duration(seconds: 20),
         headers: {'Content-Type': 'application/json'},

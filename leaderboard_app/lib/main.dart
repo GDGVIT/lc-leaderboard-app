@@ -53,7 +53,11 @@ class Bootstrap extends StatelessWidget {
             ChangeNotifierProvider(create: (_) => UserProvider()),
             ChangeNotifierProvider(create: (_) => ChatProvider()),
             ChangeNotifierProvider(create: (ctx) => GroupProvider(groupService)),
-            ChangeNotifierProvider(create: (ctx) => DashboardProvider(service: dashboardService, userProvider: ctx.read<UserProvider>())),
+            ChangeNotifierProvider(create: (ctx) => DashboardProvider(
+              service: dashboardService,
+              userProvider: ctx.read<UserProvider>(),
+              userService: userService,
+            )),
             Provider.value(value: authService),
             Provider.value(value: dashboardService),
             Provider.value(value: leetCodeService),

@@ -35,16 +35,27 @@ Auth tokens (JWT) are automatically attached from `SharedPreferences` via an int
 
 ### Environment / Base URL
 
-Override API base URL at build time:
+Centralized in `lib/config/api_config.dart`.
 
-```bash
-flutter run --dart-define=BASE_URL=https://your.api.host/api
+Default baked-in base URL (when no override is supplied):
+
+```
+http://140.238.213.170:3002/api
 ```
 
-Default development URLs:
+Override at build/run time:
 
-* Web / Desktop / iOS simulator: `http://localhost:3000/api`
-* Android emulator: `http://10.0.2.2:3000/api`
+```bash
+flutter run --dart-define=API_BASE_URL=https://your.api.host/api
+```
+
+Release / CI example:
+
+```bash
+flutter build apk --dart-define=API_BASE_URL=https://prod.api.host/api
+```
+
+Trailing slashes are trimmed automatically. Keep `/api` if your backend routes are under that prefix.
 
 ### Adding new endpoints
 

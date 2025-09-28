@@ -111,11 +111,17 @@ class _DashboardPageState extends State<DashboardPage> {
 
                     // Scrollable Content
                     Expanded(
-                      child: SingleChildScrollView(
-                        padding: const EdgeInsets.all(12),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
+                      child: RefreshIndicator(
+                        onRefresh: () async {
+                          // Refresh all dashboard data (daily question, submissions, leaderboard)
+                          await context.read<DashboardProvider>().loadAll();
+                        },
+                        child: SingleChildScrollView(
+                          physics: const AlwaysScrollableScrollPhysics(),
+                          padding: const EdgeInsets.all(12),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
                             Consumer<DashboardProvider>(
                               builder: (_, dp, __) => dp.loadingDaily
                                   ? _loadingCard(height: 90)
@@ -146,7 +152,8 @@ class _DashboardPageState extends State<DashboardPage> {
                               const SizedBox(height: 10),
                               Text(_error!, style: const TextStyle(color: Colors.redAccent)),
                             ],
-                          ],
+                            ],
+                          ),
                         ),
                       ),
                     ),
