@@ -80,6 +80,39 @@ class GroupMember {
   }
 }
 
+/// Optional strongly typed role enum. Use [GroupRoleExt.parse] to convert
+/// backend string values without throwing.
+enum GroupRole { owner, admin, moderator, member }
+
+extension GroupRoleExt on GroupRole {
+  static GroupRole parse(String? raw) {
+    switch (raw?.toUpperCase()) {
+      case 'OWNER':
+        return GroupRole.owner;
+      case 'ADMIN':
+        return GroupRole.admin;
+      case 'MODERATOR':
+        return GroupRole.moderator;
+      default:
+        return GroupRole.member;
+    }
+  }
+
+  String get asApiValue {
+    switch (this) {
+      case GroupRole.owner:
+        return 'OWNER';
+      case GroupRole.admin:
+        return 'ADMIN';
+      case GroupRole.moderator:
+        return 'MODERATOR';
+      case GroupRole.member:
+        return 'MEMBER';
+    }
+  }
+}
+
+
 class GroupCreator {
   final String id;
   final String username;

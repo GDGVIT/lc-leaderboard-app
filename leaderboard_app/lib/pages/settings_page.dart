@@ -24,7 +24,7 @@ class SettingsPage extends StatelessWidget {
     return Scaffold(
       backgroundColor: colors.surface,
       appBar: AppBar(
-        title: const Text('Settings'),
+        title: const Text('Settings', style: TextStyle(color: Colors.white),),
         centerTitle: true,
         backgroundColor: colors.surface,
         elevation: 0,
@@ -37,16 +37,14 @@ class SettingsPage extends StatelessWidget {
           // ====== Personal Details ======
           Text(
             'My Account',
-            style: TextStyle(color: colors.primary, fontSize: 16),
+            style: TextStyle(color: Colors.white, fontSize: 16),
           ),
           const SizedBox(height: 10),
 
           Consumer<UserProvider>(
             builder: (context, user, _) {
+              // We no longer display separate first/last name fields – just show the full username.
               final name = (user.name).trim();
-              final parts = name.split(RegExp(r"\s+"));
-              final firstName = parts.isNotEmpty && parts.first.isNotEmpty ? parts.first : '-';
-              final lastName = parts.length > 1 ? parts.sublist(1).join(' ') : '';
               final username = name.isNotEmpty ? name : '-';
               final email = (user.email).isNotEmpty ? user.email : '-';
               final streak = user.streak;
@@ -61,26 +59,14 @@ class SettingsPage extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Center(
-                  child: Column(
-                    children: [
-                      CircleAvatar(
-                        radius: 40,
-                        backgroundColor: colors.tertiary.withOpacity(0.3),
-                        child: Icon(
-                          Icons.person,
-                          size: 32,
-                          color: colors.primary,
-                        ),
-                      ),
-                      const SizedBox(height: 6),
-                      TextButton(
-                        onPressed: () {},
-                        child: Text(
-                          "Edit",
-                          style: TextStyle(color: colors.secondary),
-                        ),
-                      ),
-                    ],
+                  child: CircleAvatar(
+                    radius: 40,
+                    backgroundColor: colors.tertiary.withOpacity(0.3),
+                    child: Icon(
+                      Icons.person,
+                      size: 32,
+                      color: colors.primary,
+                    ),
                   ),
                 ),
                 const SizedBox(height: 10),
@@ -91,19 +77,7 @@ class SettingsPage extends StatelessWidget {
                   color: colors.primary.withOpacity(0.3),
                 ),
 
-                // First & Last Name side-by-side
-                Row(
-                  children: [
-                    Expanded(child: _buildDisplayTile('First Name', firstName, colors)),
-                    const SizedBox(width: 10),
-                    Expanded(child: _buildDisplayTile('Last Name', lastName.isEmpty ? '-' : lastName, colors)),
-                  ],
-                ),
-                Divider(
-                  height: 1,
-                  thickness: 0.6,
-                  color: colors.primary.withOpacity(0.3),
-                ),
+                // Username
                 _buildDisplayTile('Username', '@$username', colors),
                 Divider(
                   height: 1,
@@ -133,7 +107,7 @@ class SettingsPage extends StatelessWidget {
           // ====== Container 2 ======
           Text(
             'Password and Authentication',
-            style: TextStyle(color: colors.primary, fontSize: 16),
+            style: TextStyle(color: Colors.white, fontSize: 16),
           ),
           const SizedBox(height: 10),
           Container(
@@ -148,19 +122,22 @@ class SettingsPage extends StatelessWidget {
                   children: [
                     Expanded(child: _buildDisplayTile('Password', '••••••••', colors)),
                     const SizedBox(width: 10),
-                    ElevatedButton(
-                      onPressed: () {},
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: colors.secondary,
-                        foregroundColor: colors.surface,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 14,
+                    Align(
+                      alignment: Alignment.bottomCenter,
+                      child: ElevatedButton(
+                        onPressed: () {},
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: colors.secondary,
+                          foregroundColor: colors.surface,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 14,
+                          ),
                         ),
-                      ),
-                      child: const Text(
-                        'Change password',
-                        style: TextStyle(fontSize: 12),
+                        child: const Text(
+                          'Change password',
+                          style: TextStyle(fontSize: 12),
+                        ),
                       ),
                     ),
                   ],
@@ -238,31 +215,31 @@ class SettingsPage extends StatelessWidget {
     );
   }
 
-  // Non-editable display tile
+  // Label outside, grey pill only around value
   Widget _buildDisplayTile(String title, String value, ColorScheme colors) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 12),
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.all(8),
-        decoration: BoxDecoration(
-          color: colors.tertiary.withOpacity(0.3),
-          borderRadius: BorderRadius.circular(10),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              title,
-              style: TextStyle(color: colors.primary.withOpacity(0.7), fontSize: 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: TextStyle(color: colors.onSurface, fontSize: 12, fontWeight: FontWeight.w500),
+          ),
+          const SizedBox(height: 6),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            decoration: BoxDecoration(
+              color: colors.tertiary.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(10),
             ),
-            const SizedBox(height: 4),
-            Text(
+            child: Text(
               value,
-              style: TextStyle(color: colors.primary, fontSize: 14),
+              style: TextStyle(color: colors.primary, fontSize: 14, fontWeight: FontWeight.w500),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
