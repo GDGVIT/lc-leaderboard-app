@@ -31,8 +31,8 @@ class ProblemTable extends StatelessWidget {
         color: Colors.grey[850],
         borderRadius: BorderRadius.circular(12),
       ),
-  child: DataTable(
-        columnSpacing: 10,
+      child: DataTable(
+        columnSpacing: 12,
         dataRowMinHeight: 32,
         dataRowMaxHeight: 36,
         headingRowHeight: 32,
@@ -60,7 +60,7 @@ class ProblemTable extends StatelessWidget {
           ),
           DataColumn(
             label: Text(
-              "Acc.",
+              "Accuracy",
               style: TextStyle(
                 color: Colors.white,
                 fontSize: 12,
@@ -69,16 +69,7 @@ class ProblemTable extends StatelessWidget {
           ),
           DataColumn(
             label: Text(
-              "Lvl",
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 12,
-              ),
-            ),
-          ),
-          DataColumn(
-            label: Text(
-              "Prog",
+              "Level",
               style: TextStyle(
                 color: Colors.white,
                 fontSize: 12,
@@ -117,13 +108,6 @@ class ProblemTable extends StatelessWidget {
                           : Colors.red,
                   fontSize: 12,
                 ),
-              )),
-              DataCell(Icon(
-                Icons.circle,
-                color: submissions[index].statusDisplay.toLowerCase() == 'accepted'
-                    ? Colors.green
-                    : Colors.grey,
-                size: 10,
               )),
             ],
           ),

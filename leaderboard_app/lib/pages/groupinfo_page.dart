@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:leaderboard_app/models/group_models.dart';
 import 'package:leaderboard_app/services/groups/group_service.dart';
 import 'package:leaderboard_app/provider/user_provider.dart';
+import 'package:leaderboard_app/provider/chatlists_provider.dart';
 import 'package:provider/provider.dart';
 
 class GroupInfoPage extends StatefulWidget {
@@ -289,37 +290,39 @@ class _GroupInfoPageState extends State<GroupInfoPage> {
       context: context,
       builder: (context) {
         final colors = Theme.of(context).colorScheme;
-        return AlertDialog(
-          backgroundColor: Colors.grey[900],
-          title: const Text('Edit Group'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: nameCtrl,
-                decoration: const InputDecoration(labelText: 'Name'),
-              ),
-              const SizedBox(height: 8),
-              TextField(
-                controller: descCtrl,
-                decoration: const InputDecoration(labelText: 'Description'),
-              ),
-              const SizedBox(height: 8),
-              SwitchListTile(
-                title: const Text('Private'),
-                value: isPrivate,
-                onChanged: (v) => isPrivate = v,
+        return StatefulBuilder(
+          builder: (context, setLocalState) => AlertDialog(
+            backgroundColor: Colors.grey[900],
+            title: const Text('Edit Group'),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: nameCtrl,
+                  decoration: const InputDecoration(labelText: 'Name'),
+                ),
+                const SizedBox(height: 8),
+                TextField(
+                  controller: descCtrl,
+                  decoration: const InputDecoration(labelText: 'Description'),
+                ),
+                const SizedBox(height: 8),
+                SwitchListTile(
+                  title: const Text('Private'),
+                  value: isPrivate,
+                  onChanged: (v) => setLocalState(() => isPrivate = v),
+                ),
+              ],
+            ),
+            actions: [
+              TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
+              ElevatedButton(
+                onPressed: () => Navigator.pop(context, true),
+                style: ElevatedButton.styleFrom(backgroundColor: colors.secondary, foregroundColor: Colors.black),
+                child: const Text('Save'),
               ),
             ],
           ),
-          actions: [
-            TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
-            ElevatedButton(
-              onPressed: () => Navigator.pop(context, true),
-              style: ElevatedButton.styleFrom(backgroundColor: colors.secondary, foregroundColor: Colors.black),
-              child: const Text('Save'),
-            ),
-          ],
         );
       },
     );
@@ -327,7 +330,11 @@ class _GroupInfoPageState extends State<GroupInfoPage> {
     setState(() => _mutating = true);
     try {
       final svc = context.read<GroupService>();
-      await svc.updateGroup(_group!.id, name: nameCtrl.text.trim(), description: descCtrl.text.trim().isEmpty ? null : descCtrl.text.trim(), isPrivate: isPrivate);
+      final updated = await svc.updateGroup(_group!.id, name: nameCtrl.text.trim(), description: descCtrl.text.trim().isEmpty ? null : descCtrl.text.trim(), isPrivate: isPrivate);
+      // Optimistically update chat list provider
+      if (mounted) {
+        context.read<ChatListProvider?>()?.updateGroupMeta(groupId: updated.id, name: updated.name, isPrivate: updated.isPrivate);
+      }
       await _load();
     } catch (_) {
       setState(() => _error = 'Failed to update group');
@@ -355,6 +362,11 @@ class _GroupInfoPageState extends State<GroupInfoPage> {
     try {
       final svc = context.read<GroupService>();
       await svc.deleteGroup(_group!.id);
+      // Update chat list provider so list reflects deletion
+      if (mounted) {
+        final chatListProv = context.read<ChatListProvider?>();
+        chatListProv?.removeGroup(_group!.id);
+      }
       if (!mounted) return;
       Navigator.of(context).pop();
     } catch (_) {

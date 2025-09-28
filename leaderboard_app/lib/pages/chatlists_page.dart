@@ -43,10 +43,181 @@ class _ChatlistsPageState extends State<ChatlistsPage> {
     }
   }
 
+  void _showCreateGroupSheet() {
+    final nameController = TextEditingController();
+    final descController = TextEditingController();
+    final maxMembersController = TextEditingController();
+    bool isPrivate = false;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Theme.of(context).colorScheme.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (context, setSheetState) {
+            final theme = Theme.of(context).colorScheme;
+            final provider = context.watch<ChatListProvider>();
+            return Padding(
+              padding: EdgeInsets.only(
+                bottom: MediaQuery.of(context).viewInsets.bottom + 16,
+                left: 16,
+                right: 16,
+                top: 16,
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Text(
+                        'Create Group',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: theme.primary,
+                        ),
+                      ),
+                      const Spacer(),
+                      IconButton(
+                        icon: const Icon(Icons.close),
+                        color: theme.primary,
+                        onPressed: () => Navigator.pop(context),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  TextField(
+                    controller: nameController,
+                    textInputAction: TextInputAction.next,
+                    style: TextStyle(color: theme.primary),
+                    decoration: InputDecoration(
+                      labelText: 'Name *',
+                      labelStyle: TextStyle(color: theme.primary.withOpacity(0.7)),
+                      filled: true,
+                      fillColor: Colors.grey.shade900,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide.none,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: descController,
+                    maxLines: 3,
+                    style: TextStyle(color: theme.primary),
+                    decoration: InputDecoration(
+                      labelText: 'Description',
+                      labelStyle: TextStyle(color: theme.primary.withOpacity(0.7)),
+                      filled: true,
+                      fillColor: Colors.grey.shade900,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide.none,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          controller: maxMembersController,
+                          keyboardType: TextInputType.number,
+                          style: TextStyle(color: theme.primary),
+                          decoration: InputDecoration(
+                            labelText: 'Max Members (optional)',
+                            labelStyle: TextStyle(color: theme.primary.withOpacity(0.7)),
+                            filled: true,
+                            fillColor: Colors.grey.shade900,
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide.none,
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('Private', style: TextStyle(color: theme.primary.withOpacity(0.7))),
+                          Switch(
+                            value: isPrivate,
+                            onChanged: (v) => setSheetState(() => isPrivate = v),
+                            activeColor: theme.secondary,
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                  if (provider.createError != null) ...[
+                    const SizedBox(height: 4),
+                    Text(provider.createError!, style: const TextStyle(color: Colors.redAccent, fontSize: 12)),
+                  ],
+                  const SizedBox(height: 12),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      onPressed: provider.isCreating
+                          ? null
+                          : () async {
+                              final name = nameController.text.trim();
+                              if (name.isEmpty) {
+                                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Name is required')));
+                                return;
+                              }
+                              final maxMembers = int.tryParse(maxMembersController.text.trim());
+                              final svc = context.read<GroupService>();
+                              final created = await provider.createNewGroup(
+                                svc,
+                                name: name,
+                                description: descController.text.trim().isEmpty ? null : descController.text.trim(),
+                                isPrivate: isPrivate,
+                                maxMembers: maxMembers,
+                              );
+                              if (created != null && mounted) {
+                                Navigator.pop(context); // close sheet
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('Group created')),
+                                );
+                              }
+                            },
+                      icon: provider.isCreating
+                          ? SizedBox(
+                              height: 18,
+                              width: 18,
+                              child: CircularProgressIndicator(strokeWidth: 2, color: Theme.of(context).colorScheme.onSecondary),
+                            )
+                          : const Icon(Icons.check),
+                      label: Text(provider.isCreating ? 'Creating...' : 'Create'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Theme.of(context).colorScheme.secondary,
+                        foregroundColor: Colors.black,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context).colorScheme;
-  final chatProvider = Provider.of<ChatListProvider>(context);
+    final chatProvider = Provider.of<ChatListProvider>(context);
     final filteredGroups = _applyFilter(chatProvider.chatGroups);
 
     return Scaffold(
@@ -103,9 +274,12 @@ class _ChatlistsPageState extends State<ChatlistsPage> {
                   const SizedBox(width: 10),
                   Padding(
                     padding: const EdgeInsets.only(right: 16),
-                    child: CircleAvatar(
-                      backgroundColor: theme.secondary,
-                      child: Icon(Icons.add, color: Colors.black),
+                    child: GestureDetector(
+                      onTap: _showCreateGroupSheet,
+                      child: CircleAvatar(
+                        backgroundColor: theme.secondary,
+                        child: const Icon(Icons.add, color: Colors.black),
+                      ),
                     ),
                   ),
                 ],

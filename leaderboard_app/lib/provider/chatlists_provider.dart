@@ -7,9 +7,15 @@ class ChatListProvider extends ChangeNotifier {
   bool _isLoading = false;
   String? _error;
 
+  // Creation state
+  bool _isCreating = false;
+  String? _createError;
+
   List<Map<String, dynamic>> get chatGroups => _chatGroups;
   bool get isLoading => _isLoading;
   String? get error => _error;
+  bool get isCreating => _isCreating;
+  String? get createError => _createError;
 
   /// Load dummy group chats
   void loadDummyGroups() {
@@ -62,6 +68,37 @@ class ChatListProvider extends ChangeNotifier {
     }
   }
 
+  /// Create a new group and add to list (optimistically inserts at top)
+  Future<Map<String, dynamic>?> createNewGroup(GroupService service, {required String name, String? description, bool isPrivate = false, int? maxMembers}) async {
+    if (_isCreating) return null; // prevent duplicate taps
+    _isCreating = true;
+    _createError = null;
+    notifyListeners();
+    try {
+      final group = await service.createGroup(name: name, description: description, isPrivate: isPrivate, maxMembers: maxMembers);
+      final map = {
+        'groupId': group.id,
+        'name': group.name,
+        'lastMessage': '',
+        'time': '',
+        'members': group.members.map((m) => {
+              'uid': m.userId,
+              'name': m.user?.username ?? m.userId,
+            }).toList(),
+        'unread': false,
+        'favourite': false,
+      };
+      _chatGroups = [map, ..._chatGroups];
+      return map;
+    } catch (e) {
+      _createError = 'Failed to create group';
+      return null;
+    } finally {
+      _isCreating = false;
+      notifyListeners();
+    }
+  }
+
   /// Mark a group as read
   void markGroupAsRead(String groupId) {
     final index = _chatGroups.indexWhere((group) => group["groupId"] == groupId);
@@ -79,5 +116,30 @@ class ChatListProvider extends ChangeNotifier {
       _chatGroups[index]["time"] = time;
       notifyListeners();
     }
+  }
+
+  /// Remove a group from the list (e.g., after deletion)
+  void removeGroup(String groupId) {
+    final beforeLen = _chatGroups.length;
+    _chatGroups.removeWhere((g) => g['groupId'] == groupId);
+    if (beforeLen != _chatGroups.length) {
+      notifyListeners();
+    }
+  }
+
+  /// Update group metadata (e.g., after editing name / privacy)
+  void updateGroupMeta({required String groupId, String? name, bool? isPrivate}) {
+    final index = _chatGroups.indexWhere((g) => g['groupId'] == groupId);
+    if (index == -1) return;
+    bool changed = false;
+    if (name != null && name.isNotEmpty && _chatGroups[index]['name'] != name) {
+      _chatGroups[index]['name'] = name;
+      changed = true;
+    }
+    if (isPrivate != null && _chatGroups[index]['isPrivate'] != isPrivate) {
+      _chatGroups[index]['isPrivate'] = isPrivate;
+      changed = true;
+    }
+    if (changed) notifyListeners();
   }
 }
