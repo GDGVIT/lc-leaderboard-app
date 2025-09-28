@@ -59,15 +59,6 @@ class LeaderboardTable extends StatelessWidget {
               ),
             ),
           ),
-          DataColumn(
-            label: Text(
-              "Badge",
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 12,
-              ),
-            ),
-          ),
         ],
         rows: List.generate(
           users.length,
@@ -99,13 +90,6 @@ class LeaderboardTable extends StatelessWidget {
                 "${users[index].totalSolved}",
                 style: const TextStyle(color: Colors.white, fontSize: 12),
               )),
-              const DataCell(
-                Icon(
-                  Icons.star,
-                  color: Colors.amber,
-                  size: 16,
-                ),
-              ),
             ],
           ),
         ),

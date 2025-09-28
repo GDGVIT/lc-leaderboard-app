@@ -7,6 +7,23 @@ class ProblemTable extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (submissions.isEmpty) {
+      return Container(
+        padding: const EdgeInsets.all(16),
+        width: double.infinity,
+        decoration: BoxDecoration(
+          color: Colors.grey[850],
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: const Center(
+          child: Text(
+            'No recent accepted submissions',
+            style: TextStyle(color: Colors.white54, fontSize: 12),
+          ),
+        ),
+      );
+    }
+
     return Container(
       padding: const EdgeInsets.all(12),
       width: double.infinity, // match parent width

@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:leaderboard_app/models/dashboard_models.dart';
+import 'package:leaderboard_app/models/submissions_models.dart';
 import 'package:leaderboard_app/services/core/api_client.dart';
 
 class DashboardService {
@@ -12,16 +13,23 @@ class DashboardService {
   }
 
   Future<List<SubmissionItem>> getUserSubmissions() async {
-  final res = await _dio.get('/dashboard/submissions');
-  final body = res.data as Map<String, dynamic>;
-  final data = (body['data'] ?? body) as Map<String, dynamic>;
-  final raw = (data['submissions'] ?? data['items'] ?? data['results'] ?? data) as dynamic;
-  final list = raw is List
-    ? raw.cast<Map<String, dynamic>>()
-    : (raw is Map<String, dynamic> && raw['submissions'] is List)
-      ? (raw['submissions'] as List).cast<Map<String, dynamic>>()
-      : <Map<String, dynamic>>[];
-  return list.map(SubmissionItem.fromJson).toList();
+    final res = await _dio.get('/dashboard/submissions');
+    final body = res.data as Map<String, dynamic>;
+    // Attempt structured parsing
+    try {
+      final parsed = SubmissionsResponse.fromJson(body);
+      return parsed.data.submissions.map((e) => e.toSubmissionItem()).toList();
+    } catch (_) {
+      // Fallback to previous loose parsing strategy
+      final data = (body['data'] ?? body) as Map<String, dynamic>;
+      final raw = (data['submissions'] ?? data['items'] ?? data['results'] ?? data) as dynamic;
+      final list = raw is List
+          ? raw.cast<Map<String, dynamic>>()
+          : (raw is Map<String, dynamic> && raw['submissions'] is List)
+              ? (raw['submissions'] as List).cast<Map<String, dynamic>>()
+              : <Map<String, dynamic>>[];
+      return list.map(SubmissionItem.fromJson).toList();
+    }
   }
 
   Future<DailyQuestion?> getDailyQuestion() async {

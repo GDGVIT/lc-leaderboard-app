@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:leaderboard_app/dashboard-components/compact_calendar.dart';
+// import 'package:leaderboard_app/dashboard-components/compact_calendar.dart'; // removed widget
 import 'package:leaderboard_app/dashboard-components/leaderboard_table.dart';
 import 'package:leaderboard_app/dashboard-components/problem_table.dart';
 import 'package:leaderboard_app/dashboard-components/daily_activity.dart';
-import 'package:leaderboard_app/dashboard-components/week_view.dart';
-import 'package:leaderboard_app/dashboard-components/weekly_stats.dart';
+// import 'package:leaderboard_app/dashboard-components/week_view.dart'; // removed widget
+// import 'package:leaderboard_app/dashboard-components/weekly_stats.dart'; // removed widget
 import 'package:leaderboard_app/provider/user_provider.dart';
 // models via provider components
 // import 'package:leaderboard_app/models/dashboard_models.dart';
@@ -104,12 +104,6 @@ class _DashboardPageState extends State<DashboardPage> {
                               "${user.streak}",
                               colors.secondary,
                             ),
-                            const SizedBox(width: 8),
-                            _buildHeaderButton(
-                              Icons.person_add,
-                              "Invite",
-                              colors.secondary,
-                            ),
                           ],
                         ),
                       ),
@@ -122,8 +116,6 @@ class _DashboardPageState extends State<DashboardPage> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const WeekView(),
-                            const SizedBox(height: 10),
                             Consumer<DashboardProvider>(
                               builder: (_, dp, __) => dp.loadingDaily
                                   ? _loadingCard(height: 90)
@@ -142,13 +134,14 @@ class _DashboardPageState extends State<DashboardPage> {
                                 if (!dp.isVerified) {
                                   return _verifyCard();
                                 }
+                                if (dp.errorSubs != null) {
+                                  return _errorCard(dp.errorSubs!);
+                                }
                                 return ProblemTable(submissions: dp.submissions);
                               },
                             ),
                             const SizedBox(height: 10),
-                            const WeeklyStats(),
-                            const SizedBox(height: 10),
-                            const CompactCalendar(),
+                            // Removed WeeklyStats and CompactCalendar per request
                             if (_error != null) ...[
                               const SizedBox(height: 10),
                               Text(_error!, style: const TextStyle(color: Colors.redAccent)),
@@ -217,6 +210,38 @@ class _DashboardPageState extends State<DashboardPage> {
               style: TextStyle(color: Colors.white70)),
           SizedBox(height: 8),
           Text('Go to Settings > Verify LeetCode', style: TextStyle(color: Colors.white54, fontSize: 12)),
+        ],
+      ),
+    );
+  }
+
+  Widget _errorCard(String message) {
+    return Container(
+      width: double.infinity,
+      height: 120,
+      decoration: BoxDecoration(
+        color: Colors.red.withOpacity(0.15),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.redAccent.withOpacity(0.4)),
+      ),
+      padding: const EdgeInsets.all(16),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Icon(Icons.error_outline, color: Colors.redAccent),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Text('Unable to load submissions',
+                    style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold, fontSize: 13)),
+                const SizedBox(height: 6),
+                Text(message, style: const TextStyle(color: Colors.white70, fontSize: 12)),
+              ],
+            ),
+          ),
         ],
       ),
     );
