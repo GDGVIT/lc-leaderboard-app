@@ -257,8 +257,22 @@ class _GroupInfoPageState extends State<GroupInfoPage> {
   }
 
   Widget _xpTable(List<GroupMember> members) {
-    // Renamed section (no XP) - still sorts by XP to keep ordering if needed
-    final sorted = [...members]..sort((a, b) => (b.xp).compareTo(a.xp));
+    // Sort by hydrated streak desc, then solved desc, then xp desc, then username asc as final tie-breaker
+    final sorted = [...members];
+    sorted.sort((a, b) {
+      String aName = (a.user?.username ?? a.userId).toLowerCase();
+      String bName = (b.user?.username ?? b.userId).toLowerCase();
+      final aStats = _userStats[aName];
+      final bStats = _userStats[bName];
+      final aStreak = aStats?.$1 ?? a.user?.streak ?? 0;
+      final bStreak = bStats?.$1 ?? b.user?.streak ?? 0;
+      if (bStreak != aStreak) return bStreak.compareTo(aStreak);
+      final aSolved = aStats?.$2 ?? a.user?.totalSolved ?? 0;
+      final bSolved = bStats?.$2 ?? b.user?.totalSolved ?? 0;
+      if (bSolved != aSolved) return bSolved.compareTo(aSolved);
+      if (b.xp != a.xp) return b.xp.compareTo(a.xp);
+      return aName.compareTo(bName);
+    });
     return Container(
       padding: const EdgeInsets.all(12),
       width: double.infinity,
@@ -266,8 +280,7 @@ class _GroupInfoPageState extends State<GroupInfoPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Group Members', style: TextStyle(fontSize: 18)),
-          const SizedBox(height: 12),
+          // Header removed per request
           // Wrap DataTable to enforce full-width usage and allow overflow if needed
           LayoutBuilder(
             builder: (context, constraints) => ConstrainedBox(
