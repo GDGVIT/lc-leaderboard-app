@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:leaderboard_app/models/group_models.dart';
 import 'package:leaderboard_app/services/groups/group_service.dart';
+import 'package:leaderboard_app/services/dashboard/dashboard_service.dart';
 import 'package:leaderboard_app/provider/user_provider.dart';
 import 'package:leaderboard_app/provider/chatlists_provider.dart';
 import 'package:provider/provider.dart';
@@ -21,6 +22,8 @@ class _GroupInfoPageState extends State<GroupInfoPage> {
   String? _error;
   bool _mutating = false;
   String? _currentUserId;
+  // Hydrated user stats from global leaderboard (username -> (streak, solved))
+  final Map<String, (int streak, int solved)> _userStats = {};
 
   @override
   void initState() {
@@ -34,9 +37,19 @@ class _GroupInfoPageState extends State<GroupInfoPage> {
       _error = null;
     });
     try {
-  _currentUserId = context.read<UserProvider>().user?.id;
+      _currentUserId = context.read<UserProvider>().user?.id;
       final svc = context.read<GroupService>();
       final g = await svc.getGroupById(widget.groupId);
+      // Hydrate streak / solved from dashboard leaderboard (best-effort)
+      try {
+        final dash = context.read<DashboardService>();
+        final lb = await dash.getLeaderboard();
+        _userStats
+          ..clear()
+          ..addEntries(lb.map((u) => MapEntry(u.username.toLowerCase(), (u.streak, u.totalSolved))));
+      } catch (_) {
+        // ignore hydration errors silently
+      }
       if (!mounted) return;
       setState(() => _group = g);
     } catch (e) {
@@ -244,6 +257,7 @@ class _GroupInfoPageState extends State<GroupInfoPage> {
   }
 
   Widget _xpTable(List<GroupMember> members) {
+    // Renamed section (no XP) - still sorts by XP to keep ordering if needed
     final sorted = [...members]..sort((a, b) => (b.xp).compareTo(a.xp));
     return Container(
       padding: const EdgeInsets.all(12),
@@ -252,29 +266,41 @@ class _GroupInfoPageState extends State<GroupInfoPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('XP Leaderboard', style: TextStyle(fontSize: 18)),
+          const Text('Group Members', style: TextStyle(fontSize: 18)),
           const SizedBox(height: 12),
-          DataTable(
-            columnSpacing: 10,
-            dataRowMinHeight: 32,
-            dataRowMaxHeight: 36,
-            headingRowHeight: 32,
-            headingRowColor: MaterialStateProperty.all(Colors.grey[900]),
-            columns: const [
-              DataColumn(label: Text('Place', style: TextStyle(color: Colors.white, fontSize: 12))),
-              DataColumn(label: Text('Player', style: TextStyle(color: Colors.white, fontSize: 12))),
-              DataColumn(label: Text('Role', style: TextStyle(color: Colors.white, fontSize: 12))),
-              DataColumn(label: Text('XP', style: TextStyle(color: Colors.white, fontSize: 12))),
-            ],
-            rows: List.generate(sorted.length, (i) {
-              final m = sorted[i];
-              return DataRow(cells: [
-                DataCell(Text('${i + 1}', style: const TextStyle(color: Colors.white, fontSize: 12))),
-                DataCell(Text(m.user?.username ?? m.userId, style: const TextStyle(color: Colors.white, fontSize: 12))),
-                DataCell(Text(m.role, style: const TextStyle(color: Colors.white, fontSize: 12))),
-                DataCell(Text('${m.xp}', style: const TextStyle(color: Colors.white, fontSize: 12))),
-              ]);
-            }),
+          // Wrap DataTable to enforce full-width usage and allow overflow if needed
+          LayoutBuilder(
+            builder: (context, constraints) => ConstrainedBox(
+              constraints: BoxConstraints(minWidth: constraints.maxWidth),
+              child: DataTable(
+                columnSpacing: 16,
+                dataRowMinHeight: 32,
+                dataRowMaxHeight: 40,
+                headingRowHeight: 32,
+                headingRowColor: MaterialStateProperty.all(Colors.grey[850]),
+                columns: const [
+                  DataColumn(label: Text('Place', style: TextStyle(color: Colors.white, fontSize: 12))),
+                  DataColumn(label: Text('Player', style: TextStyle(color: Colors.white, fontSize: 12))),
+                  DataColumn(label: Text('Streak', style: TextStyle(color: Colors.white, fontSize: 12))),
+                  DataColumn(label: Text('Solved', style: TextStyle(color: Colors.white, fontSize: 12))),
+                ],
+                rows: List.generate(sorted.length, (i) {
+                  final m = sorted[i];
+                  final uname = (m.user?.username ?? m.userId).toLowerCase();
+                  final hydrated = _userStats[uname];
+                  final streak = hydrated != null ? hydrated.$1 : (m.user?.streak ?? 0);
+                  final solved = hydrated != null ? hydrated.$2 : (m.user?.totalSolved ?? 0);
+                  final streakDisplay = streak == 0 ? '—' : '$streak';
+                  final solvedDisplay = solved == 0 ? '—' : '$solved';
+                  return DataRow(cells: [
+                    DataCell(Text('${i + 1}', style: const TextStyle(color: Colors.white, fontSize: 12))),
+                    DataCell(Text(m.user?.username ?? m.userId, style: const TextStyle(color: Colors.white, fontSize: 12))),
+                    DataCell(Text(streakDisplay, style: const TextStyle(color: Colors.white, fontSize: 12))),
+                    DataCell(Text(solvedDisplay, style: const TextStyle(color: Colors.white, fontSize: 12))),
+                  ]);
+                }),
+              ),
+            ),
           ),
         ],
       ),

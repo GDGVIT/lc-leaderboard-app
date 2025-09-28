@@ -14,6 +14,19 @@ class UserProvider extends ChangeNotifier {
   bool get isLoading => _loading;
   String? get error => _error;
 
+  void setLeetCodeStatus({String? handle, bool? verified}) {
+    if (_user == null) return;
+    _user = User(
+      id: _user!.id,
+      username: _user!.username,
+      email: _user!.email,
+      leetcodeHandle: handle ?? _user!.leetcodeHandle,
+      leetcodeVerified: verified ?? _user!.leetcodeVerified,
+      streak: _user!.streak,
+    );
+    notifyListeners();
+  }
+
   void updateUser({required String name, required String email, required int streak}) {
     _user = User(
       id: _user?.id ?? '',

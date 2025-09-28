@@ -132,12 +132,16 @@ class GroupMemberUser {
   final String username;
   final String? leetcodeHandle;
   final bool leetcodeVerified;
+  final int streak; // daily streak count
+  final int totalSolved; // total solved problems
 
   GroupMemberUser({
     required this.id,
     required this.username,
     this.leetcodeHandle,
     required this.leetcodeVerified,
+    this.streak = 0,
+    this.totalSolved = 0,
   });
 
   factory GroupMemberUser.fromJson(Map<String, dynamic> json) => GroupMemberUser(
@@ -145,6 +149,13 @@ class GroupMemberUser {
         username: (json['username'] ?? '').toString(),
         leetcodeHandle: json['leetcodeHandle'] as String?,
         leetcodeVerified: json['leetcodeVerified'] == true,
+    // Support multiple possible key names from different endpoints
+    streak: (json['streak'] ?? json['currentStreak'] ?? json['dailyStreak']) is num
+      ? ((json['streak'] ?? json['currentStreak'] ?? json['dailyStreak']) as num).toInt()
+      : 0,
+    totalSolved: (json['totalSolved'] ?? json['solved'] ?? json['problemsSolved']) is num
+      ? ((json['totalSolved'] ?? json['solved'] ?? json['problemsSolved']) as num).toInt()
+      : 0,
       );
 }
 

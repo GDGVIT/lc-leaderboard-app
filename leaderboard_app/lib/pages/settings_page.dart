@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:leaderboard_app/services/auth/auth_service.dart';
 import 'package:leaderboard_app/provider/user_provider.dart';
 import 'package:leaderboard_app/services/user/user_service.dart';
+import 'package:leaderboard_app/services/leetcode/leetcode_service.dart';
 import 'package:provider/provider.dart';
 
 class SettingsPage extends StatelessWidget {
@@ -48,6 +49,8 @@ class SettingsPage extends StatelessWidget {
               final username = name.isNotEmpty ? name : '-';
               final email = (user.email).isNotEmpty ? user.email : '-';
               final streak = user.streak;
+              final handle = user.user?.leetcodeHandle;
+              final verified = user.user?.leetcodeVerified == true;
 
               return Container(
             padding: const EdgeInsets.all(16),
@@ -91,6 +94,49 @@ class SettingsPage extends StatelessWidget {
                   color: colors.primary.withOpacity(0.3),
                 ),
                 _buildDisplayTile('Streak', streak.toString(), colors),
+                Divider(
+                  height: 1,
+                  thickness: 0.6,
+                  color: colors.primary.withOpacity(0.3),
+                ),
+                // LeetCode handle & verify section
+                if (verified)
+                  _buildDisplayTile('LeetCode', handle ?? '-', colors)
+                else
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'LeetCode',
+                        style: TextStyle(color: colors.onSurface, fontSize: 12, fontWeight: FontWeight.w500),
+                      ),
+                      const SizedBox(height: 6),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                              decoration: BoxDecoration(
+                                color: colors.tertiary.withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: Text(handle ?? 'Not linked', style: TextStyle(color: colors.primary, fontSize: 14, fontWeight: FontWeight.w500)),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          ElevatedButton(
+                            onPressed: () => _showLeetCodeVerifyDialog(context),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: colors.secondary,
+                              foregroundColor: Colors.black,
+                              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+                            ),
+                            child: const Text('Verify'),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
                 Divider(
                   height: 1,
                   thickness: 0.6,
@@ -213,6 +259,117 @@ class SettingsPage extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  Future<void> _showLeetCodeVerifyDialog(BuildContext context) async {
+    final colors = Theme.of(context).colorScheme;
+    final handleCtrl = TextEditingController();
+    String? code;
+    String? instructions;
+    bool loading = false;
+    bool started = false;
+    bool polling = false;
+    String? error;
+
+    await showDialog(
+      context: context,
+      barrierDismissible: !loading,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setState) => AlertDialog(
+          backgroundColor: Colors.grey[900],
+          title: const Text('Verify LeetCode'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (!started) ...[
+                TextField(
+                  controller: handleCtrl,
+                  decoration: const InputDecoration(labelText: 'LeetCode Username'),
+                ),
+                const SizedBox(height: 12),
+                if (error != null) Text(error!, style: const TextStyle(color: Colors.redAccent, fontSize: 12)),
+              ] else ...[
+                if (instructions != null) Text(instructions!, style: const TextStyle(fontSize: 13)),
+                if (code != null) ...[
+                  const SizedBox(height: 12),
+                  SelectableText('Verification Code: $code', style: const TextStyle(fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 8),
+                  const Text('Add this code to your LeetCode profile bio then keep this dialog open.'),
+                ],
+                if (polling) ...[
+                  const SizedBox(height: 16),
+                  Row(children: const [SizedBox(width:16,height:16, child: CircularProgressIndicator(strokeWidth:2)), SizedBox(width:8), Text('Checking status...')]),
+                ],
+              ],
+            ],
+          ),
+          actions: [
+            if (!loading)
+              TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text('Close'),
+              ),
+            if (!started)
+              ElevatedButton(
+                onPressed: loading
+                    ? null
+                    : () async {
+                        final handle = handleCtrl.text.trim();
+                        if (handle.isEmpty) {
+                          setState(() => error = 'Enter a username');
+                          return;
+                        }
+                        setState(() {
+                          loading = true;
+                          error = null;
+                        });
+                        try {
+                          final svc = ctx.read<LeetCodeService>();
+                          final res = await svc.startVerification(handle);
+                          code = res.verificationCode;
+                          instructions = res.instructions ?? 'Place the code in your LeetCode bio.';
+                          started = true;
+                          // begin polling
+                          polling = true;
+                          setState(() {});
+                          _pollLeetCodeStatus(ctx, setState);
+                        } catch (e) {
+                          error = 'Failed to start verification';
+                        } finally {
+                          loading = false;
+                          setState(() {});
+                        }
+                      },
+                style: ElevatedButton.styleFrom(backgroundColor: colors.secondary, foregroundColor: Colors.black),
+                child: const Text('Start'),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _pollLeetCodeStatus(BuildContext dialogContext, void Function(void Function()) setState) async {
+    final svc = dialogContext.read<LeetCodeService>();
+    for (int i = 0; i < 30; i++) { // up to ~30 polls
+      await Future.delayed(const Duration(seconds: 4));
+      try {
+        final status = await svc.getStatus();
+        if (status.isVerified) {
+          // update user provider
+            dialogContext.read<UserProvider>().setLeetCodeStatus(handle: status.leetcodeHandle, verified: true);
+          if (Navigator.of(dialogContext).canPop()) {
+            Navigator.of(dialogContext).pop();
+          }
+          return;
+        }
+      } catch (_) {
+        // ignore transient errors
+      }
+      // refresh UI each loop
+      setState(() {});
+    }
   }
 
   // Label outside, grey pill only around value
