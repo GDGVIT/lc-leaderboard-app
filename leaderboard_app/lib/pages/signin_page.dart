@@ -75,7 +75,7 @@ class _SignInPageState extends State<SignInPage> {
                       decoration: InputDecoration(
                         filled: true,
                         fillColor: const Color(0xFF141316),
-                        hintText: 'Email or username',
+                        hintText: 'Email',
                         hintStyle:  TextStyle(color: Colors.grey.withOpacity(0.28)),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),

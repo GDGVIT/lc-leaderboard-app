@@ -24,21 +24,25 @@ class SettingsPage extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: colors.surface,
-      appBar: AppBar(
-        title: const Text('Settings', style: TextStyle(color: Colors.white),),
-        centerTitle: true,
-        backgroundColor: colors.surface,
-        elevation: 0,
-        foregroundColor: colors.primary,
-      ),
-  body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
+      body: SafeArea(
+        child: ListView(
+          padding: const EdgeInsets.only(left:16, right:16, top:16, bottom:24),
+          children: [
+            // Title (match Group Chats styling)
+            Text(
+              'Settings',
+              style: TextStyle(
+                color: colors.primary,
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 20),
 
           // ====== Personal Details ======
           Text(
             'My Account',
-            style: TextStyle(color: Colors.white, fontSize: 16),
+            style: TextStyle(color: colors.primary, fontSize: 16, fontWeight: FontWeight.w600),
           ),
           const SizedBox(height: 10),
 
@@ -153,7 +157,7 @@ class SettingsPage extends StatelessWidget {
           // ====== Container 2 ======
           Text(
             'Password and Authentication',
-            style: TextStyle(color: Colors.white, fontSize: 16),
+            style: TextStyle(color: colors.primary, fontSize: 16, fontWeight: FontWeight.w600),
           ),
           const SizedBox(height: 10),
           Container(
@@ -257,6 +261,7 @@ class SettingsPage extends StatelessWidget {
             ),
           ),
         ],
+        ),
       ),
     );
   }

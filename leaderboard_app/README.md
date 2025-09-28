@@ -71,3 +71,79 @@ Trailing slashes are trimmed automatically. Keep `/api` if your backend routes a
 
 Generated code (`rest_client.g.dart`) should not be manually edited.
 
+## Building a Release APK / Sharing the App
+
+1. (Optional) Override the API base URL at build time (recommended for different envs):
+
+```bash
+flutter build apk --release --dart-define=API_BASE_URL=https://prod.api.host/api
+```
+
+If you omit `--dart-define` the baked-in default from `ApiConfig` is used.
+
+2. The unsigned release APK will be at:
+
+```
+build\app\outputs\flutter-apk\app-release.apk
+```
+
+3. (Recommended) Create a keystore and configure signing in `android/key.properties` + `build.gradle` to avoid Play Store rejection and to allow in-place upgrades.
+
+### Example keystore creation (run once)
+
+```bash
+keytool -genkey -v -keystore my-release-key.keystore -alias upload -keyalg RSA -keysize 2048 -validity 10000
+```
+
+Place the keystore under `android/` (never commit to VCS) and add a `key.properties`:
+
+```
+storePassword=YOUR_STORE_PASSWORD
+keyPassword=YOUR_KEY_PASSWORD
+keyAlias=upload
+storeFile=../my-release-key.keystore
+```
+
+Then update `android/app/build.gradle` signingConfigs + buildTypes (if not already present).
+
+### Distributing for quick tests
+
+You can directly share `app-release.apk` with testers (they must enable install from unknown sources). For Play Store publishing prefer an AAB:
+
+```bash
+flutter build appbundle --dart-define=API_BASE_URL=https://prod.api.host/api
+```
+
+## Troubleshooting: "Cannot reach server. Check BASE_URL..."
+
+This message originates from `ErrorUtils.fromDio` when the `DioExceptionType.connectionError` occurs. Common causes:
+
+| Cause | Fix |
+|-------|-----|
+| Device has no internet | Ensure Wi‑Fi/data works (open a website) |
+| Backend URL wrong or down | Open the URL in mobile Chrome to verify response |
+| Using `localhost` / private IP not reachable externally | Use a public/stable host or expose via tunneling (ngrok, Cloudflare) |
+| HTTP blocked (if you switch to HTTPS only) | Ensure correct scheme in `API_BASE_URL` |
+| Missing INTERNET permission | Manifest now includes `<uses-permission android:name="android.permission.INTERNET" />` |
+
+To quickly verify the URL the app is using, add a temporary log:
+
+```dart
+print('API base URL: ' + ApiConfig.baseUrl);
+```
+
+Or run with an override:
+
+```bash
+flutter run --release --dart-define=API_BASE_URL=https://your-temp-api/api
+```
+
+If the backend uses a self-signed certificate, Android may reject it—use a valid cert (Let's Encrypt) for production.
+
+## Future Enhancements (Optional)
+
+* Add build flavors: dev / staging / prod with per-flavor `--dart-define` presets.
+* Add environment banner in-app for non-prod.
+* Implement exponential backoff retries for transient network errors.
+* Add Sentry or similar for error monitoring.
+
