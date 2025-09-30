@@ -5,6 +5,7 @@ import 'package:leaderboard_app/services/dashboard/dashboard_service.dart';
 import 'package:leaderboard_app/provider/user_provider.dart';
 import 'package:leaderboard_app/provider/chatlists_provider.dart';
 import 'package:provider/provider.dart';
+import 'package:leaderboard_app/provider/group_membership_provider.dart';
 
 class GroupInfoPage extends StatefulWidget {
   final String groupId;
@@ -89,8 +90,14 @@ class _GroupInfoPageState extends State<GroupInfoPage> {
       final svc = context.read<GroupService>();
       if (_isMember) {
         await svc.leaveGroup(_group!.id);
+        // Pop immediately with result so upstream (e.g., ChatPage) can react
+        if (mounted) Navigator.of(context).pop({'leftGroup': true, 'groupId': _group!.id});
+        return; // skip reloading after leave
       } else {
         await svc.joinGroup(_group!.id);
+        // Inform membership provider (if in tree) so gate can switch to chat
+        final membershipProv = context.read<GroupMembershipProvider?>();
+        membershipProv?.markJoined();
       }
       await _load();
     } catch (e) {

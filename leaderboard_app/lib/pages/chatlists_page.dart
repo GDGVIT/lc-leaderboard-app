@@ -4,6 +4,8 @@ import 'package:leaderboard_app/provider/chatlists_provider.dart';
 import 'package:leaderboard_app/services/groups/group_service.dart';
 import 'package:provider/provider.dart';
 import 'groupinfo_page.dart';
+import 'chat_page.dart';
+import 'package:leaderboard_app/provider/user_provider.dart';
 
 class ChatlistsPage extends StatefulWidget {
   const ChatlistsPage({super.key});
@@ -359,14 +361,36 @@ class _ChatlistsPageState extends State<ChatlistsPage> {
                           return Column(
                             children: [
                               InkWell(
-                                onTap: () {
+                                onTap: () async {
                                   chatProvider.markGroupAsRead(groupId);
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => GroupInfoPage(groupId: groupId, initialName: groupName),
-                                    ),
-                                  );
+                                  // Determine if user already member; best effort by fetching group
+                                  final groupSvc = context.read<GroupService>();
+                                  final userId = context.read<UserProvider?>()?.user?.id;
+                                  bool isMember = false;
+                                  try {
+                                    final g = await groupSvc.getGroupById(groupId);
+                                    if (userId != null) {
+                                      isMember = g.members.any((m) => m.userId == userId);
+                                    }
+                                  } catch (_) {
+                                    // fallback: show info page
+                                  }
+                                  if (!mounted) return;
+                                  if (isMember) {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => ChatPage(groupId: groupId, groupName: groupName),
+                                      ),
+                                    );
+                                  } else {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => GroupInfoPage(groupId: groupId, initialName: groupName),
+                                      ),
+                                    );
+                                  }
                                 },
                                 child: Container(
                                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),

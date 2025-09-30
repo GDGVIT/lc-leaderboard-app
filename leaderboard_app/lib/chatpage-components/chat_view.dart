@@ -52,7 +52,7 @@ class _ChatViewState extends State<ChatView> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context).colorScheme;
-    Provider.of<ChatProvider>(context);
+    Provider.of<ChatProvider>(context); // keep provider watch for message updates
 
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(),
@@ -70,7 +70,11 @@ class _ChatViewState extends State<ChatView> {
                 MaterialPageRoute(
                   builder: (_) => GroupInfoPage(groupId: widget.groupId, initialName: widget.groupName),
                 ),
-              );
+              ).then((result) {
+                if (result is Map && result['leftGroup'] == true) {
+                  if (mounted) Navigator.of(context).pop(); // leave chat view
+                }
+              });
             },
             child: Row(
               children: [

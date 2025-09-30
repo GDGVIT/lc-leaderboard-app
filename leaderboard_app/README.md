@@ -71,6 +71,7 @@ Trailing slashes are trimmed automatically. Keep `/api` if your backend routes a
 
 Generated code (`rest_client.g.dart`) should not be manually edited.
 
+
 ## Building a Release APK / Sharing the App
 
 1. (Optional) Override the API base URL at build time (recommended for different envs):

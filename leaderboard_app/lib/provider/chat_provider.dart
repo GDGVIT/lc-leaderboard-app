@@ -1,139 +1,67 @@
 import 'package:flutter/material.dart';
 
+/// Local-only ChatProvider: keeps in-memory messages per group. Navigation
+/// logic (direct-to-chat if member) remains intact, but no realtime backend.
 class ChatProvider extends ChangeNotifier {
-  final String currentUserID = "uid_me";
+  final String currentUserID = 'local_me';
 
-  /// Stores messages per group: { groupId: [messageMap, ...] }
   final Map<String, List<Map<String, dynamic>>> _groupMessages = {};
-
-  /// Stores replyTo per group
   final Map<String, String?> _groupReplyTo = {};
-
-  /// Stores attachment options visibility per group
   final Map<String, bool> _groupAttachmentVisibility = {};
+  final Set<String> _joinedGroups = {};
 
-  /// Define some users with colors
-  final List<Map<String, dynamic>> _dummyUsers = [
-    {"id": "uid_me", "name": "You", "color": Colors.black},
-    {"id": "uid_1", "name": "Person 1", "color": Colors.purple},
-    {"id": "uid_2", "name": "Person 2", "color": Colors.red},
-    {"id": "uid_3", "name": "Person 3", "color": Colors.green},
-    {"id": "uid_4", "name": "Person 4", "color": Colors.blue},
-  ];
+  // Exposed connection flags (kept for UI compatibility; always "connected").
+  bool get isConnecting => false;
+  bool get isConnected => true;
+  String? get connectionError => null;
 
-  // Expose dummyUsers publicly for other widgets to read
-  List<Map<String, dynamic>> get dummyUsers => _dummyUsers;
+  List<Map<String, dynamic>> getMessages(String groupId) => _groupMessages[groupId] ?? const [];
+  String? getReplyTo(String groupId) => _groupReplyTo[groupId];
+  bool getAttachmentOptionsVisibility(String groupId) => _groupAttachmentVisibility[groupId] ?? false;
 
-  /// Get messages for a specific group
-  List<Map<String, dynamic>> getMessages(String groupId) =>
-      _groupMessages[groupId] ?? [];
-
-  /// Helper to get user info
-  Map<String, dynamic> _getUser(String id) =>
-      _dummyUsers.firstWhere((u) => u["id"] == id);
-
-  /// Initialize a group with dummy messages
-  void _initGroupIfNeeded(String groupId) {
-    _groupMessages.putIfAbsent(groupId, () => [
-          {
-            "senderID": "uid_1",
-            "senderName": _getUser("uid_1")["name"],
-            "senderColor": _getUser("uid_1")["color"],
-            "message": "text text text text text text text text text text...",
-            "timestamp": "12:30 pm",
-          },
-          {
-            "senderID": "uid_1",
-            "senderName": _getUser("uid_1")["name"],
-            "senderColor": _getUser("uid_1")["color"],
-            "message": "text text text text text text text text text text...",
-            "timestamp": "12:31 pm",
-          },
-          {
-            "senderID": "uid_2",
-            "senderName": _getUser("uid_2")["name"],
-            "senderColor": _getUser("uid_2")["color"],
-            "message": "text text text text text text text text text text...",
-            "timestamp": "12:33 pm",
-          },
-          {
-            "senderID": currentUserID,
-            "senderName": _getUser(currentUserID)["name"],
-            "senderColor": _getUser(currentUserID)["color"],
-            "message": "text text text text text text text text text text...",
-            "timestamp": "12:34 pm",
-          },
-          {
-            "senderID": "uid_3",
-            "senderName": _getUser("uid_3")["name"],
-            "senderColor": _getUser("uid_3")["color"],
-            "message": "text text text text text text text text text text...",
-            "timestamp": "12:35 pm",
-          },
-          {
-            "senderID": "uid_4",
-            "senderName": _getUser("uid_4")["name"],
-            "senderColor": _getUser("uid_4")["color"],
-            "message": "text text text text text text text text text text...",
-            "timestamp": "12:36 pm",
-          },
-        ]);
-
+  Future<void> joinGroup(BuildContext context, String groupId) async {
+    if (_joinedGroups.contains(groupId)) return;
+    _joinedGroups.add(groupId);
+    _groupMessages.putIfAbsent(groupId, () => []);
     _groupReplyTo.putIfAbsent(groupId, () => null);
     _groupAttachmentVisibility.putIfAbsent(groupId, () => false);
   }
 
-  /// Get reply-to for a specific group
-  String? getReplyTo(String groupId) {
-    _initGroupIfNeeded(groupId);
-    return _groupReplyTo[groupId];
-  }
-
-  /// Get attachment options state for a specific group
-  bool getAttachmentOptionsVisibility(String groupId) {
-    _initGroupIfNeeded(groupId);
-    return _groupAttachmentVisibility[groupId] ?? false;
-  }
-
-  /// Send a new message in a group
   void sendMessage(String groupId, String text) {
     if (text.trim().isEmpty) return;
-
-    _initGroupIfNeeded(groupId);
-    final user = _getUser(currentUserID);
-
-    _groupMessages[groupId]!.add({
-      "senderID": currentUserID,
-      "senderName": user["name"],
-      "senderColor": user["color"],
-      "message": text.trim(),
-      "timestamp": "now",
-      if (_groupReplyTo[groupId] != null) "replyTo": _groupReplyTo[groupId],
+    if (!_joinedGroups.contains(groupId)) joinGroup(null as dynamic, groupId); // ensure initialized
+    final list = (_groupMessages[groupId] ??= []);
+    list.add({
+      'id': 'local-${DateTime.now().millisecondsSinceEpoch}',
+      'groupId': groupId,
+      'message': text.trim(),
+      'timestamp': _formatTimestamp(DateTime.now()),
+      'senderID': currentUserID,
+      'senderName': 'You',
+      'senderColor': Colors.black,
+      if (_groupReplyTo[groupId] != null) 'replyTo': _groupReplyTo[groupId],
     });
-
     _groupReplyTo[groupId] = null;
     notifyListeners();
   }
 
-  /// Set reply-to target for a group
   void setReplyTo(String groupId, String? message) {
-    _initGroupIfNeeded(groupId);
     _groupReplyTo[groupId] = message;
     notifyListeners();
   }
-
-  /// Clear reply-to state for a group
   void clearReplyTo(String groupId) {
-    _initGroupIfNeeded(groupId);
     _groupReplyTo[groupId] = null;
     notifyListeners();
   }
-
-  /// Toggle attachment options for a group
   void toggleAttachmentOptions(String groupId) {
-    _initGroupIfNeeded(groupId);
-    _groupAttachmentVisibility[groupId] =
-        !(_groupAttachmentVisibility[groupId] ?? false);
+    _groupAttachmentVisibility[groupId] = !(_groupAttachmentVisibility[groupId] ?? false);
     notifyListeners();
+  }
+
+  String _formatTimestamp(DateTime dt) {
+    final h = dt.hour > 12 ? dt.hour - 12 : dt.hour;
+    final m = dt.minute.toString().padLeft(2, '0');
+    final ampm = dt.hour >= 12 ? 'pm' : 'am';
+    return '$h:$m $ampm';
   }
 }

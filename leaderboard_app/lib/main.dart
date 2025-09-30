@@ -13,6 +13,7 @@ import 'package:leaderboard_app/services/user/user_service.dart';
 import 'package:go_router/go_router.dart';
 import 'package:leaderboard_app/provider/group_provider.dart';
 import 'package:leaderboard_app/provider/dashboard_provider.dart';
+import 'package:leaderboard_app/provider/group_membership_provider.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -58,6 +59,8 @@ class Bootstrap extends StatelessWidget {
               userProvider: ctx.read<UserProvider>(),
               userService: userService,
             )),
+            // Group membership status (scoped per group via proxy widgets later)
+            ChangeNotifierProvider(create: (ctx) => GroupMembershipProvider(service: groupService, userProvider: ctx.read<UserProvider>())),
             Provider.value(value: authService),
             Provider.value(value: dashboardService),
             Provider.value(value: leetCodeService),

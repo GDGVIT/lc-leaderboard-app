@@ -11,14 +11,8 @@ class ChatPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (_) {
-        final provider = ChatProvider();
-        provider.getReplyTo(groupId);
-        provider.getAttachmentOptionsVisibility(groupId);
-        return provider;
-      },
-      child: ChatView(groupId: groupId, groupName: groupName),
-    );
+    final chatProv = context.read<ChatProvider>();
+    WidgetsBinding.instance.addPostFrameCallback((_) => chatProv.joinGroup(context, groupId));
+    return ChatView(groupId: groupId, groupName: groupName);
   }
 }

@@ -6,6 +6,7 @@ import 'package:leaderboard_app/pages/home_page.dart';
 import 'package:leaderboard_app/pages/signin_page.dart';
 import 'package:leaderboard_app/pages/signup_page.dart';
 import 'package:leaderboard_app/pages/leetcode_verification_page.dart';
+import 'package:leaderboard_app/pages/chat_gate.dart';
 
 Future<bool> _isLoggedIn() async {
   final prefs = await SharedPreferences.getInstance();
@@ -40,6 +41,14 @@ GoRouter createRouter() {
       GoRoute(
         path: '/verify',
         builder: (context, state) => const LeetCodeVerificationPage(),
+      ),
+      GoRoute(
+        path: '/chat/:groupId',
+        builder: (context, state) {
+          final groupId = state.pathParameters['groupId'] ?? '';
+          final name = state.uri.queryParameters['name'];
+          return ChatGate(groupId: groupId, groupName: name);
+        },
       ),
     ],
   );
