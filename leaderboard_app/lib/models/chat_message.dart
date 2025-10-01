@@ -5,7 +5,6 @@ class ChatMessage {
   final String senderName;
   final String message;
   final DateTime timestamp;
-  final String? replyTo;
 
   ChatMessage({
     required this.id,
@@ -14,7 +13,6 @@ class ChatMessage {
     required this.senderName,
     required this.message,
     required this.timestamp,
-    this.replyTo,
   });
 
   factory ChatMessage.fromSocket(Map<String, dynamic> raw) {
@@ -26,7 +24,6 @@ class ChatMessage {
       senderName: sender is Map ? (sender['username'] ?? 'User').toString() : 'User',
       message: (raw['message'] ?? '').toString(),
       timestamp: _parseTs(raw['timestamp']),
-      replyTo: raw['replyTo'] as String?,
     );
   }
 

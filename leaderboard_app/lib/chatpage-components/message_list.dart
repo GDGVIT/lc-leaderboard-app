@@ -42,12 +42,7 @@ class MessageList extends StatelessWidget {
 
         if (isImage) return _ImageMessage(msg: msg, isMe: isMe);
 
-        return GestureDetector(
-          onDoubleTap: () {
-            provider.setReplyTo(groupId, msg["message"]);
-          },
-          child: _TextMessage(msg: msg, isMe: isMe),
-        );
+        return _TextMessage(msg: msg, isMe: isMe);
       },
     );
   }
@@ -160,22 +155,6 @@ class _TextMessage extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 4),
-            if (msg["replyTo"] != null)
-              Container(
-                margin: const EdgeInsets.only(bottom: 6),
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: Colors.black.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                child: Text(
-                  msg["replyTo"],
-                  style: TextStyle(
-                    fontSize: 11,
-                    color: isMe ? Colors.black87 : Colors.white60,
-                  ),
-                ),
-              ),
             Text(
               msg["message"] ?? "",
               style: TextStyle(

@@ -235,27 +235,14 @@ class _ChatlistsPageState extends State<ChatlistsPage> {
     final theme = Theme.of(context).colorScheme;
     final chatProvider = Provider.of<ChatListProvider>(context);
     final rawGroups = chatProvider.chatGroups;
-    // Determine current user id to evaluate membership
-    final currentUserId = context.read<UserProvider?>()?.user?.id;
     int joinedCount = 0;
     int notJoinedCount = 0;
-    // Precompute membership flags for performance
-    final membershipFlags = <String, bool>{};
     for (final g in rawGroups) {
-      final members = (g['members'] as List?) ?? const [];
-      final isJoined = currentUserId != null && members.any((m) => m is Map && m['uid'] == currentUserId);
-      membershipFlags[g['groupId']?.toString() ?? ''] = isJoined;
-      if (isJoined) {
-        joinedCount++;
-      } else {
-        notJoinedCount++;
-      }
+      final isMember = g['isMember'] == true;
+      if (isMember) {
+        joinedCount++; } else { notJoinedCount++; }
     }
-    List<Map<String, dynamic>> groups = rawGroups.where((g) {
-      final id = g['groupId']?.toString() ?? '';
-      final isJoined = membershipFlags[id] ?? false;
-      return _showJoined ? isJoined : !isJoined;
-    }).toList();
+    final groups = rawGroups.where((g) => _showJoined ? g['isMember'] == true : g['isMember'] != true).toList();
 
     return Scaffold(
       backgroundColor: theme.surface,
@@ -474,9 +461,41 @@ class _ChatlistsPageState extends State<ChatlistsPage> {
                                       Column(
                                         crossAxisAlignment: CrossAxisAlignment.end,
                                         children: [
-                                          Text(
-                                            group['time']?.toString() ?? '',
-                                            style: TextStyle(color: theme.primary.withOpacity(0.6), fontSize: 12),
+                                          Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              // Time text
+                                              if ((group['time']?.toString() ?? '').isNotEmpty)
+                                                Padding(
+                                                  padding: const EdgeInsets.only(right: 4),
+                                                  child: Text(
+                                                    group['time']?.toString() ?? '',
+                                                    style: TextStyle(color: theme.primary.withOpacity(0.6), fontSize: 12),
+                                                  ),
+                                                ),
+                                              // Privacy pill
+                                              Builder(builder: (ctx) {
+                                                final isPrivate = group['isPrivate'] == true;
+                                                final label = isPrivate ? 'Private' : 'Public';
+                                                return Container(
+                                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                                  decoration: BoxDecoration(
+                                                    color: Colors.transparent,
+                                                    borderRadius: BorderRadius.circular(10),
+                                                    border: Border.all(color: theme.primary.withOpacity(0.35), width: 1.5),
+                                                  ),
+                                                  child: Text(
+                                                    label,
+                                                    style: TextStyle(
+                                                      fontSize: 10.5,
+                                                      fontWeight: FontWeight.w600,
+                                                      color: theme.primary.withOpacity(0.85),
+                                                      letterSpacing: 0.2,
+                                                    ),
+                                                  ),
+                                                );
+                                              }),
+                                            ],
                                           ),
                                           const SizedBox(height: 8),
                                           if (group['unread'] == true)

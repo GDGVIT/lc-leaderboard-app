@@ -39,27 +39,43 @@ class ChatListProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Load groups from backend (public groups)
+  /// Load groups from backend (public groups) and merge with user's joined groups (including private)
   Future<void> loadPublicGroups(GroupService service, {int page = 1, int limit = 10, String? search}) async {
     _isLoading = true;
     _error = null;
     notifyListeners();
     try {
       final paged = await service.getAllGroups(page: page, limit: limit, search: search);
-      _chatGroups = paged.groups.map((g) {
-        return {
-          'groupId': g.id,
-          'name': g.name,
+      final myGroups = await service.getMyGroups();
+
+      // Map by id to merge (my groups take precedence for member list completeness / privacy visibility)
+      final Map<String, Map<String, dynamic>> merged = {};
+
+      void addOrUpdate(group, {bool isMember = false}) {
+        merged[group.id] = {
+          'groupId': group.id,
+          'name': group.name,
           'lastMessage': '',
           'time': '',
-          'members': g.members.map((m) => {
+          'isPrivate': group.isPrivate,
+          'members': group.members.map((m) => {
                 'uid': m.userId,
                 'name': m.user?.username ?? m.userId,
               }).toList(),
           'unread': false,
           'favourite': false,
+          'isMember': isMember,
         };
-      }).toList();
+      }
+
+      for (final g in paged.groups) {
+        addOrUpdate(g, isMember: false); // unknown membership until merged with myGroups
+      }
+      for (final g in myGroups) {
+        addOrUpdate(g, isMember: true); // mark membership
+      }
+
+      _chatGroups = merged.values.toList();
     } catch (e) {
       _error = 'Failed to load groups';
     } finally {
@@ -81,6 +97,7 @@ class ChatListProvider extends ChangeNotifier {
         'name': group.name,
         'lastMessage': '',
         'time': '',
+        'isPrivate': group.isPrivate,
         'members': group.members.map((m) => {
               'uid': m.userId,
               'name': m.user?.username ?? m.userId,

@@ -9,7 +9,6 @@ import 'user_provider.dart';
 /// ChatProvider integrates REST history + Socket.IO realtime events.
 class ChatProvider extends ChangeNotifier {
   final Map<String, List<Map<String, dynamic>>> _groupMessages = {};
-  final Map<String, String?> _groupReplyTo = {};
   final Map<String, bool> _groupAttachmentVisibility = {};
   final Set<String> _joinedGroups = {};
   final Map<String, int> _groupCurrentPage = {}; // page loaded so far (starts at 1)
@@ -34,7 +33,6 @@ class ChatProvider extends ChangeNotifier {
   String get currentUsername => _currentUsername ?? '';
 
   List<Map<String, dynamic>> getMessages(String groupId) => _groupMessages[groupId] ?? const [];
-  String? getReplyTo(String groupId) => _groupReplyTo[groupId];
   bool getAttachmentOptionsVisibility(String groupId) => _groupAttachmentVisibility[groupId] ?? false;
 
   Future<void> initIfNeeded([BuildContext? context]) async {
@@ -80,7 +78,6 @@ class ChatProvider extends ChangeNotifier {
     if (_joinedGroups.contains(groupId)) return;
     _joinedGroups.add(groupId);
     _groupMessages.putIfAbsent(groupId, () => []);
-    _groupReplyTo.putIfAbsent(groupId, () => null);
     _groupAttachmentVisibility.putIfAbsent(groupId, () => false);
 
     // Fetch history (page=1)
@@ -188,18 +185,9 @@ class ChatProvider extends ChangeNotifier {
       'senderName': isMe ? 'You' : m.senderName,
       'senderColor': isMe ? Colors.black : Colors.white,
       'isMe': isMe,
-      if (m.replyTo != null) 'replyTo': m.replyTo,
     };
   }
 
-  void setReplyTo(String groupId, String? message) {
-    _groupReplyTo[groupId] = message;
-    notifyListeners();
-  }
-  void clearReplyTo(String groupId) {
-    _groupReplyTo[groupId] = null;
-    notifyListeners();
-  }
   void toggleAttachmentOptions(String groupId) {
     _groupAttachmentVisibility[groupId] = !(_groupAttachmentVisibility[groupId] ?? false);
     notifyListeners();

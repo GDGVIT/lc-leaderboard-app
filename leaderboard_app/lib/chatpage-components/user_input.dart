@@ -21,7 +21,6 @@ class UserInput extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context).colorScheme;
     final provider = Provider.of<ChatProvider>(context);
-    final replyTo = provider.getReplyTo(groupId);
 
     return SafeArea(
       child: Padding(
@@ -30,40 +29,6 @@ class UserInput extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            if (replyTo != null)
-              ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 340),
-                child: Container(
-                  padding: const EdgeInsets.all(8),
-                  margin: const EdgeInsets.only(bottom: 10),
-                  decoration: BoxDecoration(
-                    color: Colors.grey[850],
-                    borderRadius: BorderRadius.circular(24),
-                  ),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          "Replying to: $replyTo",
-                          style: const TextStyle(
-                            color: Colors.white70,
-                            fontSize: 12,
-                          ),
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                      GestureDetector(
-                        onTap: () => provider.clearReplyTo(groupId),
-                        child: const Icon(
-                          Icons.close,
-                          size: 16,
-                          color: Colors.white54,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
             Row(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
