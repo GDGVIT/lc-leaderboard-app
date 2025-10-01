@@ -195,6 +195,23 @@ class _GroupInfoPageState extends State<GroupInfoPage> {
   }
 
   Widget _membersCard(List<GroupMember> members) {
+    // Sort members: Owner first, then Admin/Moderator, then Member; alphabetically within each tier
+    int roleRank(String role) {
+      final r = role.toUpperCase();
+      if (r == 'OWNER') return 0;
+      if (r == 'ADMIN' || r == 'MODERATOR') return 1;
+      return 2; // MEMBER or anything else
+    }
+    final sorted = [...members]
+      ..sort((a, b) {
+        final ar = roleRank(a.role);
+        final br = roleRank(b.role);
+        if (ar != br) return ar.compareTo(br);
+        final aName = (a.user?.username ?? a.userId).toLowerCase();
+        final bName = (b.user?.username ?? b.userId).toLowerCase();
+        return aName.compareTo(bName);
+      });
+
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(16),
@@ -207,7 +224,7 @@ class _GroupInfoPageState extends State<GroupInfoPage> {
         children: [
           const Text('Members', style: TextStyle(fontSize: 18)),
           const SizedBox(height: 12),
-          ...members.map((m) => Padding(
+          ...sorted.map((m) => Padding(
                 padding: const EdgeInsets.only(bottom: 10),
                 child: Row(
                   children: [
@@ -280,49 +297,44 @@ class _GroupInfoPageState extends State<GroupInfoPage> {
       if (b.xp != a.xp) return b.xp.compareTo(a.xp);
       return aName.compareTo(bName);
     });
-    return Container(
-      padding: const EdgeInsets.all(12),
-      width: double.infinity,
-      decoration: BoxDecoration(color: Colors.grey.shade900, borderRadius: BorderRadius.circular(12)),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Header removed per request
-          // Wrap DataTable to enforce full-width usage and allow overflow if needed
-          LayoutBuilder(
-            builder: (context, constraints) => ConstrainedBox(
-              constraints: BoxConstraints(minWidth: constraints.maxWidth),
-              child: DataTable(
-                columnSpacing: 16,
-                dataRowMinHeight: 32,
-                dataRowMaxHeight: 40,
-                headingRowHeight: 32,
-                headingRowColor: MaterialStateProperty.all(Colors.grey[850]),
-                columns: const [
-                  DataColumn(label: Text('Place', style: TextStyle(color: Colors.white, fontSize: 12))),
-                  DataColumn(label: Text('Player', style: TextStyle(color: Colors.white, fontSize: 12))),
-                  DataColumn(label: Text('Streak', style: TextStyle(color: Colors.white, fontSize: 12))),
-                  DataColumn(label: Text('Solved', style: TextStyle(color: Colors.white, fontSize: 12))),
-                ],
-                rows: List.generate(sorted.length, (i) {
-                  final m = sorted[i];
-                  final uname = (m.user?.username ?? m.userId).toLowerCase();
-                  final hydrated = _userStats[uname];
-                  final streak = hydrated != null ? hydrated.$1 : (m.user?.streak ?? 0);
-                  final solved = hydrated != null ? hydrated.$2 : (m.user?.totalSolved ?? 0);
-                  final streakDisplay = streak == 0 ? '—' : '$streak';
-                  final solvedDisplay = solved == 0 ? '—' : '$solved';
-                  return DataRow(cells: [
-                    DataCell(Text('${i + 1}', style: const TextStyle(color: Colors.white, fontSize: 12))),
-                    DataCell(Text(m.user?.username ?? m.userId, style: const TextStyle(color: Colors.white, fontSize: 12))),
-                    DataCell(Text(streakDisplay, style: const TextStyle(color: Colors.white, fontSize: 12))),
-                    DataCell(Text(solvedDisplay, style: const TextStyle(color: Colors.white, fontSize: 12))),
-                  ]);
-                }),
-              ),
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        width: double.infinity,
+        color: Colors.grey.shade900,
+        child: LayoutBuilder(
+          builder: (context, constraints) => ConstrainedBox(
+            constraints: BoxConstraints(minWidth: constraints.maxWidth),
+            child: DataTable(
+              columnSpacing: 16,
+              dataRowMinHeight: 32,
+              dataRowMaxHeight: 40,
+              headingRowHeight: 32,
+              headingRowColor: MaterialStateProperty.all(Colors.grey[850]),
+              columns: const [
+                DataColumn(label: Text('Place', style: TextStyle(color: Colors.white, fontSize: 12))),
+                DataColumn(label: Text('Player', style: TextStyle(color: Colors.white, fontSize: 12))),
+                DataColumn(label: Text('Streak', style: TextStyle(color: Colors.white, fontSize: 12))),
+                DataColumn(label: Text('Solved', style: TextStyle(color: Colors.white, fontSize: 12))),
+              ],
+              rows: List.generate(sorted.length, (i) {
+                final m = sorted[i];
+                final uname = (m.user?.username ?? m.userId).toLowerCase();
+                final hydrated = _userStats[uname];
+                final streak = hydrated != null ? hydrated.$1 : (m.user?.streak ?? 0);
+                final solved = hydrated != null ? hydrated.$2 : (m.user?.totalSolved ?? 0);
+                final streakDisplay = streak == 0 ? '—' : '$streak';
+                final solvedDisplay = solved == 0 ? '—' : '$solved';
+                return DataRow(cells: [
+                  DataCell(Text('${i + 1}', style: const TextStyle(color: Colors.white, fontSize: 12))),
+                  DataCell(Text(m.user?.username ?? m.userId, style: const TextStyle(color: Colors.white, fontSize: 12))),
+                  DataCell(Text(streakDisplay, style: const TextStyle(color: Colors.white, fontSize: 12))),
+                  DataCell(Text(solvedDisplay, style: const TextStyle(color: Colors.white, fontSize: 12))),
+                ]);
+              }),
             ),
           ),
-        ],
+        ),
       ),
     );
   }
