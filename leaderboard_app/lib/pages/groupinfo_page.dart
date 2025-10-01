@@ -103,6 +103,13 @@ class _GroupInfoPageState extends State<GroupInfoPage> {
       final svc = context.read<GroupService>();
       if (_isMember) {
         await svc.leaveGroup(_group!.id);
+        // After leaving, refresh public group listing so counts & membership reflect change
+        try {
+          final chatListProv = context.read<ChatListProvider?>();
+            if (chatListProv != null) {
+              chatListProv.loadPublicGroups(svc);
+            }
+        } catch (_) {}
         // Pop immediately with result so upstream (e.g., ChatPage) can react
         if (mounted) Navigator.of(context).pop({'leftGroup': true, 'groupId': _group!.id});
         return; // skip reloading after leave
@@ -111,6 +118,13 @@ class _GroupInfoPageState extends State<GroupInfoPage> {
         // Inform membership provider (if in tree) so gate can switch to chat
         final membershipProv = context.read<GroupMembershipProvider?>();
         membershipProv?.markJoined();
+        // Refresh public groups so membership filter updates automatically
+        try {
+          final chatListProv = context.read<ChatListProvider?>();
+          if (chatListProv != null) {
+            chatListProv.loadPublicGroups(svc);
+          }
+        } catch (_) {}
       }
       await _load();
     } catch (e) {

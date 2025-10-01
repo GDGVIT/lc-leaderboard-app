@@ -19,6 +19,8 @@ class _ChatlistsPageState extends State<ChatlistsPage> {
   final TextEditingController _searchController = TextEditingController();
   Timer? _debounce;
   String _searchQuery = '';
+  // Filter state: true = Joined, false = Not Joined
+  bool _showJoined = true;
 
   @override
   void initState() {
@@ -232,7 +234,28 @@ class _ChatlistsPageState extends State<ChatlistsPage> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context).colorScheme;
     final chatProvider = Provider.of<ChatListProvider>(context);
-  final groups = chatProvider.chatGroups;
+    final rawGroups = chatProvider.chatGroups;
+    // Determine current user id to evaluate membership
+    final currentUserId = context.read<UserProvider?>()?.user?.id;
+    int joinedCount = 0;
+    int notJoinedCount = 0;
+    // Precompute membership flags for performance
+    final membershipFlags = <String, bool>{};
+    for (final g in rawGroups) {
+      final members = (g['members'] as List?) ?? const [];
+      final isJoined = currentUserId != null && members.any((m) => m is Map && m['uid'] == currentUserId);
+      membershipFlags[g['groupId']?.toString() ?? ''] = isJoined;
+      if (isJoined) {
+        joinedCount++;
+      } else {
+        notJoinedCount++;
+      }
+    }
+    List<Map<String, dynamic>> groups = rawGroups.where((g) {
+      final id = g['groupId']?.toString() ?? '';
+      final isJoined = membershipFlags[id] ?? false;
+      return _showJoined ? isJoined : !isJoined;
+    }).toList();
 
     return Scaffold(
       backgroundColor: theme.surface,
@@ -315,6 +338,32 @@ class _ChatlistsPageState extends State<ChatlistsPage> {
                 ],
               ),
               const SizedBox(height: 16),
+              // Joined / Not Joined filter buttons
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Row(
+                  children: [
+                    _buildFilterButton(
+                      label: 'Joined',
+                      count: joinedCount,
+                      selected: _showJoined,
+                      onTap: () {
+                        if (!_showJoined) setState(() => _showJoined = true);
+                      },
+                    ),
+                    const SizedBox(width: 12),
+                    _buildFilterButton(
+                      label: 'Not Joined',
+                      count: notJoinedCount,
+                      selected: !_showJoined,
+                      onTap: () {
+                        if (_showJoined) setState(() => _showJoined = false);
+                      },
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 12),
 
               // Group List
               Expanded(
@@ -346,7 +395,7 @@ class _ChatlistsPageState extends State<ChatlistsPage> {
                             const SizedBox(height: 120),
                             Center(
                               child: Text(
-                                'No groups found',
+                                _showJoined ? 'No joined groups' : 'No groups available',
                                 style: TextStyle(color: theme.primary),
                               ),
                             ),
@@ -448,6 +497,55 @@ class _ChatlistsPageState extends State<ChatlistsPage> {
                 ),
               ),
             ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// Helper widget builder for filter buttons
+extension _ChatFilters on _ChatlistsPageState {
+  Widget _buildFilterButton({required String label, required int count, required bool selected, required VoidCallback onTap}) {
+    const activeColor = Color(0xFFF6C155); // #f6c155
+    final inactiveBorder = Colors.white.withOpacity(0.1);
+    return Expanded(
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 160),
+        height: 36,
+        child: Material(
+          color: selected ? activeColor : Colors.transparent,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(22),
+            side: BorderSide(color: selected ? activeColor : inactiveBorder, width: 1),
+          ),
+          clipBehavior: Clip.antiAlias,
+          child: InkWell(
+            onTap: onTap,
+            splashColor: Colors.white24,
+            child: Center(
+              child: RichText(
+                text: TextSpan(
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: 0.2,
+                    color: selected ? Colors.black : Colors.white70,
+                  ),
+                  children: [
+                    TextSpan(text: label),
+                    const TextSpan(text: ' '),
+                    TextSpan(
+                      text: count.toString(),
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        color: selected ? Colors.black : Colors.white60,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
           ),
         ),
       ),
