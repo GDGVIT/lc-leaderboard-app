@@ -148,3 +148,23 @@ If the backend uses a self-signed certificate, Android may reject it—use a val
 * Implement exponential backoff retries for transient network errors.
 * Add Sentry or similar for error monitoring.
 
+## Splash Screen & Offline Handling
+
+The app shows a native splash (configured via `flutter_native_splash`) while core services initialize. For returning users (flag stored in `SharedPreferences` as `returningUser`), dashboard data is preloaded (daily question, submissions if verified, leaderboard) before removing the splash to deliver a populated home view quickly.
+
+If there's no network connectivity at launch, a dedicated offline screen (`NoInternetPage`) is displayed. Connectivity is monitored with `connectivity_plus` through `ConnectivityProvider`; once a connection becomes available the app automatically proceeds with initialization and dismisses the splash.
+
+Update splash assets/colors in `pubspec.yaml` under `flutter_native_splash:` then regenerate:
+
+```bash
+flutter pub run flutter_native_splash:create
+```
+
+Key files:
+
+* `lib/main.dart` – splash preservation & initialization logic (`_AppInitializer`).
+* `lib/provider/connectivity_provider.dart` – connectivity listener.
+* `lib/pages/no_internet_page.dart` – offline UI.
+
+To disable preloading behavior simply remove the `dashboardProvider.loadAll()` call in `_preload()`.
+
