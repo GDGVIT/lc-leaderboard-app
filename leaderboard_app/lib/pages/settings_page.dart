@@ -3,7 +3,6 @@ import 'package:go_router/go_router.dart';
 import 'package:leaderboard_app/services/auth/auth_service.dart';
 import 'package:leaderboard_app/provider/user_provider.dart';
 import 'package:leaderboard_app/services/user/user_service.dart';
-import 'package:leaderboard_app/services/leetcode/leetcode_service.dart';
 import 'package:provider/provider.dart';
 
 class SettingsPage extends StatelessWidget {
@@ -129,7 +128,8 @@ class SettingsPage extends StatelessWidget {
                           ),
                           const SizedBox(width: 8),
                           ElevatedButton(
-                            onPressed: () => _showLeetCodeVerifyDialog(context),
+                            // Navigate to the dedicated verification page used in signup/login flow
+                            onPressed: () => context.push('/verify'),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: colors.secondary,
                               foregroundColor: Colors.black,
@@ -153,88 +153,8 @@ class SettingsPage extends StatelessWidget {
           ),
 
           const SizedBox(height: 25),
-
-          // ====== Container 2 ======
-          Text(
-            'Password and Authentication',
-            style: TextStyle(color: colors.primary, fontSize: 16, fontWeight: FontWeight.w600),
-          ),
-          const SizedBox(height: 10),
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: colors.tertiary.withOpacity(0.15),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Column(
-              children: [
-                Row(
-                  children: [
-                    Expanded(child: _buildDisplayTile('Password', '••••••••', colors)),
-                    const SizedBox(width: 10),
-                    Align(
-                      alignment: Alignment.bottomCenter,
-                      child: ElevatedButton(
-                        onPressed: () {},
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: colors.secondary,
-                          foregroundColor: colors.surface,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 14,
-                          ),
-                        ),
-                        child: const Text(
-                          'Change password',
-                          style: TextStyle(fontSize: 12),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 20),
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    'Account removal',
-                    style: TextStyle(color: colors.primary, fontSize: 16),
-                  ),
-                ),
-                const SizedBox(height: 12),
-                Row(
-                  children: [
-                    ElevatedButton(
-                      onPressed: () {},
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: colors.tertiary.withOpacity(0.5),
-                        foregroundColor: colors.primary,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 14,
-                        ),
-                      ),
-                      child: const Text('Disable Account'),
-                    ),
-                    const SizedBox(width: 10),
-                    ElevatedButton(
-                      onPressed: () {},
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.red, // Keep red for danger
-                        foregroundColor: colors.surface,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 14,
-                        ),
-                      ),
-                      child: const Text('Delete Account'),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-
-          const SizedBox(height: 20), // Extra space above the bottom
+          // Removed password & authentication section per request
+          const SizedBox(height: 4),
 
           // ====== Logout button (full-width) ======
           SizedBox(
@@ -266,116 +186,7 @@ class SettingsPage extends StatelessWidget {
     );
   }
 
-  Future<void> _showLeetCodeVerifyDialog(BuildContext context) async {
-    final colors = Theme.of(context).colorScheme;
-    final handleCtrl = TextEditingController();
-    String? code;
-    String? instructions;
-    bool loading = false;
-    bool started = false;
-    bool polling = false;
-    String? error;
-
-    await showDialog(
-      context: context,
-      barrierDismissible: !loading,
-      builder: (ctx) => StatefulBuilder(
-        builder: (ctx, setState) => AlertDialog(
-          backgroundColor: Colors.grey[900],
-          title: const Text('Verify LeetCode'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              if (!started) ...[
-                TextField(
-                  controller: handleCtrl,
-                  decoration: const InputDecoration(labelText: 'LeetCode Username'),
-                ),
-                const SizedBox(height: 12),
-                if (error != null) Text(error!, style: const TextStyle(color: Colors.redAccent, fontSize: 12)),
-              ] else ...[
-                if (instructions != null) Text(instructions!, style: const TextStyle(fontSize: 13)),
-                if (code != null) ...[
-                  const SizedBox(height: 12),
-                  SelectableText('Verification Code: $code', style: const TextStyle(fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 8),
-                  const Text('Add this code to your LeetCode profile bio then keep this dialog open.'),
-                ],
-                if (polling) ...[
-                  const SizedBox(height: 16),
-                  Row(children: const [SizedBox(width:16,height:16, child: CircularProgressIndicator(strokeWidth:2)), SizedBox(width:8), Text('Checking status...')]),
-                ],
-              ],
-            ],
-          ),
-          actions: [
-            if (!loading)
-              TextButton(
-                onPressed: () => Navigator.pop(ctx),
-                child: const Text('Close'),
-              ),
-            if (!started)
-              ElevatedButton(
-                onPressed: loading
-                    ? null
-                    : () async {
-                        final handle = handleCtrl.text.trim();
-                        if (handle.isEmpty) {
-                          setState(() => error = 'Enter a username');
-                          return;
-                        }
-                        setState(() {
-                          loading = true;
-                          error = null;
-                        });
-                        try {
-                          final svc = ctx.read<LeetCodeService>();
-                          final res = await svc.startVerification(handle);
-                          code = res.verificationCode;
-                          instructions = res.instructions ?? 'Place the code in your LeetCode bio.';
-                          started = true;
-                          // begin polling
-                          polling = true;
-                          setState(() {});
-                          _pollLeetCodeStatus(ctx, setState);
-                        } catch (e) {
-                          error = 'Failed to start verification';
-                        } finally {
-                          loading = false;
-                          setState(() {});
-                        }
-                      },
-                style: ElevatedButton.styleFrom(backgroundColor: colors.secondary, foregroundColor: Colors.black),
-                child: const Text('Start'),
-              ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Future<void> _pollLeetCodeStatus(BuildContext dialogContext, void Function(void Function()) setState) async {
-    final svc = dialogContext.read<LeetCodeService>();
-    for (int i = 0; i < 30; i++) { // up to ~30 polls
-      await Future.delayed(const Duration(seconds: 4));
-      try {
-        final status = await svc.getStatus();
-        if (status.isVerified) {
-          // update user provider
-            dialogContext.read<UserProvider>().setLeetCodeStatus(handle: status.leetcodeHandle, verified: true);
-          if (Navigator.of(dialogContext).canPop()) {
-            Navigator.of(dialogContext).pop();
-          }
-          return;
-        }
-      } catch (_) {
-        // ignore transient errors
-      }
-      // refresh UI each loop
-      setState(() {});
-    }
-  }
+  // Removed in-dialog verification flow; navigation now uses dedicated page '/verify'
 
   // Label outside, grey pill only around value
   Widget _buildDisplayTile(String title, String value, ColorScheme colors) {

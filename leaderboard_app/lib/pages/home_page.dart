@@ -27,13 +27,13 @@ class _HomePageState extends State<HomePage> {
       bottomNavigationBar: Theme(
         data: Theme.of(context).copyWith(
           canvasColor: Colors.grey[900],
-          primaryColor: Colors.yellow,
+          primaryColor: Colors.amber,
           textTheme: Theme.of(context).textTheme.copyWith(
                 bodySmall: const TextStyle(color: Colors.white),
               ),
         ),
         child: BottomNavigationBar(
-          selectedItemColor: Colors.yellow,
+            selectedItemColor: Color(0xFFF6C155),
           unselectedItemColor: Colors.white,
           showSelectedLabels: false,
           showUnselectedLabels: false,

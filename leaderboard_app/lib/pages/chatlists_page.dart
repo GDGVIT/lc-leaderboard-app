@@ -273,15 +273,17 @@ class _ChatlistsPageState extends State<ChatlistsPage> {
                           ),
                           filled: true,
                           fillColor: Colors.grey.shade900,
+                          // Reduced vertical padding to make the bar slightly shorter
                           contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 12,
+                            horizontal: 14,
+                            vertical: 8,
                           ),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
                             borderSide: BorderSide.none,
                           ),
-                          prefixIcon: Icon(Icons.search, color: theme.primary),
+                          // Removed search icon per request
+                          // prefixIcon: Icon(Icons.search, color: theme.primary),
                           suffixIcon: _searchQuery.isNotEmpty
                               ? IconButton(
                                   tooltip: 'Clear',
@@ -305,7 +307,7 @@ class _ChatlistsPageState extends State<ChatlistsPage> {
                     child: GestureDetector(
                       onTap: _showCreateGroupSheet,
                       child: CircleAvatar(
-                        backgroundColor: theme.secondary,
+                        backgroundColor: Colors.white,
                         child: const Icon(Icons.add, color: Colors.black),
                       ),
                     ),
@@ -361,6 +363,8 @@ class _ChatlistsPageState extends State<ChatlistsPage> {
                           return Column(
                             children: [
                               InkWell(
+                                splashColor: const Color(0xFF705B37).withOpacity(0.35),
+                                highlightColor: const Color(0xFF705B37).withOpacity(0.25),
                                 onTap: () async {
                                   chatProvider.markGroupAsRead(groupId);
                                   // Determine if user already member; best effort by fetching group

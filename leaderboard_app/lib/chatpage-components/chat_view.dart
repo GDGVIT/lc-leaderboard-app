@@ -20,6 +20,7 @@ class _ChatViewState extends State<ChatView> {
   final ScrollController _scrollController = ScrollController();
   final FocusNode myFocusNode = FocusNode();
   int _lastMessageCount = 0; // retained for possible future usage
+  bool _didInitialAutoScroll = false; // guard to only auto-scroll once after history loads
 
   @override
   void initState() {
@@ -68,6 +69,15 @@ class _ChatViewState extends State<ChatView> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context).colorScheme;
     final chat = Provider.of<ChatProvider>(context); // watch
+    // Attempt initial auto-scroll when messages first arrive
+    if (!_didInitialAutoScroll) {
+      final msgs = chat.getMessages(widget.groupId);
+      if (msgs.isNotEmpty) {
+        // schedule after current frame so ListView has dimensions
+        WidgetsBinding.instance.addPostFrameCallback((_) => scrollDown());
+        _didInitialAutoScroll = true;
+      }
+    }
 
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(),
