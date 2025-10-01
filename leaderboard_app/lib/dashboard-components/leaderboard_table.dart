@@ -7,14 +7,12 @@ class LeaderboardTable extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      width: double.infinity, // matches parent width
-      decoration: BoxDecoration(
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        width: double.infinity,
         color: Colors.grey[850],
-        borderRadius: BorderRadius.circular(12),
-      ),
-  child: DataTable(
+        child: DataTable(
         columnSpacing: 10,
         dataRowMinHeight: 32,
         dataRowMaxHeight: 36,
@@ -92,6 +90,7 @@ class LeaderboardTable extends StatelessWidget {
               )),
             ],
           ),
+        ),
         ),
       ),
     );
