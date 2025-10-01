@@ -75,12 +75,25 @@ class _GroupInfoPageState extends State<GroupInfoPage> {
     return g.members.any((m) => m.userId == uid && m.role.toUpperCase() == 'OWNER');
   }
 
-  bool get _isAdminOrOwner {
+  bool get _isAdmin {
     final uid = _currentUserId;
     final g = _group;
     if (uid == null || g == null) return false;
-    if (_isOwner) return true;
     return g.members.any((m) => m.userId == uid && (m.role.toUpperCase() == 'ADMIN' || m.role.toUpperCase() == 'MODERATOR'));
+  }
+
+  bool _canManage(GroupMember target) {
+    // Owner can manage anyone except themselves
+    if (_isOwner) {
+      // Prevent self demotion via manage menu (handled elsewhere) by disallowing actions on OWNER role belonging to current user.
+      return !(target.role.toUpperCase() == 'OWNER' && target.userId == _currentUserId);
+    }
+    // Admins can manage only regular members (not owner, not other admins/mods)
+    if (_isAdmin) {
+      final role = target.role.toUpperCase();
+      return role != 'OWNER' && role != 'ADMIN' && role != 'MODERATOR';
+    }
+    return false; // members cannot manage anyone
   }
 
   Future<void> _joinLeave() async {
@@ -124,7 +137,8 @@ class _GroupInfoPageState extends State<GroupInfoPage> {
               padding: EdgeInsets.only(right: 12),
               child: Center(child: SizedBox(height: 18, width: 18, child: CircularProgressIndicator(strokeWidth: 2))),
             ),
-          if (!_loading && _group != null && _isAdminOrOwner)
+          // Only the owner should see the 3-dot menu (admins no longer see it)
+          if (!_loading && _group != null && _isOwner)
             PopupMenuButton<String>(
               onSelected: (value) async {
                 switch (value) {
@@ -247,21 +261,21 @@ class _GroupInfoPageState extends State<GroupInfoPage> {
                       decoration: BoxDecoration(color: Colors.blueGrey.shade700, borderRadius: BorderRadius.circular(8)),
                       child: Text(m.role, style: const TextStyle(fontSize: 12)),
                     ),
-                    if (_isAdminOrOwner)
+                    if (_canManage(m))
                       PopupMenuButton<String>(
                         onSelected: (value) async {
                           switch (value) {
                             case 'remove':
-                              await _removeMember(m);
+                              if (_canManage(m)) await _removeMember(m);
                               break;
                             case 'promote':
-                              await _changeRole(m, 'ADMIN');
+                              if (_canManage(m)) await _changeRole(m, 'ADMIN');
                               break;
                             case 'demote':
-                              await _changeRole(m, 'MEMBER');
+                              if (_canManage(m)) await _changeRole(m, 'MEMBER');
                               break;
                             case 'makeOwner':
-                              await _transferOwnershipTo(m);
+                              if (_isOwner && m.role.toUpperCase() != 'OWNER') await _transferOwnershipTo(m);
                               break;
                           }
                         },
@@ -269,7 +283,7 @@ class _GroupInfoPageState extends State<GroupInfoPage> {
                           const PopupMenuItem(value: 'remove', child: Text('Remove')),
                           const PopupMenuItem(value: 'promote', child: Text('Promote to Admin')),
                           const PopupMenuItem(value: 'demote', child: Text('Demote to Member')),
-                          if (_isOwner) const PopupMenuItem(value: 'makeOwner', child: Text('Make Owner')),
+                          if (_isOwner && m.role.toUpperCase() != 'OWNER') const PopupMenuItem(value: 'makeOwner', child: Text('Make Owner')),
                         ],
                       ),
                   ],
