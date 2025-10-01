@@ -369,64 +369,175 @@ class _GroupInfoPageState extends State<GroupInfoPage> {
 
   Future<void> _showEditGroupDialog() async {
     if (_group == null) return;
-    final nameCtrl = TextEditingController(text: _group!.name);
-    final descCtrl = TextEditingController(text: _group!.description ?? '');
+    final nameController = TextEditingController(text: _group!.name);
+    final descController = TextEditingController(text: _group!.description ?? '');
+    final maxMembersController = TextEditingController(text: _group!.maxMembers?.toString() ?? '');
     bool isPrivate = _group!.isPrivate;
-    final result = await showDialog<bool>(
+
+    await showModalBottomSheet(
       context: context,
-      builder: (context) {
-        final colors = Theme.of(context).colorScheme;
+      isScrollControlled: true,
+      backgroundColor: Theme.of(context).colorScheme.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) {
         return StatefulBuilder(
-          builder: (context, setLocalState) => AlertDialog(
-            backgroundColor: Colors.grey[900],
-            title: const Text('Edit Group'),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TextField(
-                  controller: nameCtrl,
-                  decoration: const InputDecoration(labelText: 'Name'),
-                ),
-                const SizedBox(height: 8),
-                TextField(
-                  controller: descCtrl,
-                  decoration: const InputDecoration(labelText: 'Description'),
-                ),
-                const SizedBox(height: 8),
-                SwitchListTile(
-                  title: const Text('Private'),
-                  value: isPrivate,
-                  onChanged: (v) => setLocalState(() => isPrivate = v),
-                ),
-              ],
-            ),
-            actions: [
-              TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
-              ElevatedButton(
-                onPressed: () => Navigator.pop(context, true),
-                style: ElevatedButton.styleFrom(backgroundColor: colors.secondary, foregroundColor: Colors.black),
-                child: const Text('Save'),
+          builder: (context, setSheetState) {
+            final theme = Theme.of(context).colorScheme;
+            return Padding(
+              padding: EdgeInsets.only(
+                bottom: MediaQuery.of(context).viewInsets.bottom + 16,
+                left: 16,
+                right: 16,
+                top: 16,
               ),
-            ],
-          ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Text(
+                        'Edit Group',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: theme.primary,
+                        ),
+                      ),
+                      const Spacer(),
+                      IconButton(
+                        icon: const Icon(Icons.close),
+                        color: theme.primary,
+                        onPressed: () => Navigator.pop(context),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  TextField(
+                    controller: nameController,
+                    textInputAction: TextInputAction.next,
+                    style: TextStyle(color: theme.primary),
+                    decoration: InputDecoration(
+                      labelText: 'Name *',
+                      labelStyle: TextStyle(color: theme.primary.withOpacity(0.7)),
+                      filled: true,
+                      fillColor: Colors.grey.shade900,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide.none,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: descController,
+                    maxLines: 3,
+                    style: TextStyle(color: theme.primary),
+                    decoration: InputDecoration(
+                      labelText: 'Description',
+                      labelStyle: TextStyle(color: theme.primary.withOpacity(0.7)),
+                      filled: true,
+                      fillColor: Colors.grey.shade900,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide.none,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          controller: maxMembersController,
+                          keyboardType: TextInputType.number,
+                          style: TextStyle(color: theme.primary),
+                          decoration: InputDecoration(
+                            labelText: 'Max Members (optional)',
+                            labelStyle: TextStyle(color: theme.primary.withOpacity(0.7)),
+                            filled: true,
+                            fillColor: Colors.grey.shade900,
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide.none,
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('Private', style: TextStyle(color: theme.primary.withOpacity(0.7))),
+                          Switch(
+                            value: isPrivate,
+                            onChanged: (v) => setSheetState(() => isPrivate = v),
+                            activeColor: theme.secondary,
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      onPressed: _mutating
+                          ? null
+                          : () async {
+                              final name = nameController.text.trim();
+                              if (name.isEmpty) {
+                                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Name is required')));
+                                return;
+                              }
+                              setState(() => _mutating = true);
+                              final maxMembers = int.tryParse(maxMembersController.text.trim());
+                              try {
+                                final svc = context.read<GroupService>();
+                                final g = await svc.updateGroup(
+                                  _group!.id,
+                                  name: name,
+                                  description: descController.text.trim().isEmpty ? null : descController.text.trim(),
+                                  isPrivate: isPrivate,
+                                  maxMembers: maxMembers,
+                                );
+                                if (mounted) {
+                                  context.read<ChatListProvider?>()?.updateGroupMeta(groupId: g.id, name: g.name, isPrivate: g.isPrivate);
+                                }
+                                await _load();
+                                if (mounted) Navigator.pop(context);
+                              } catch (_) {
+                                if (mounted) setState(() => _error = 'Failed to update group');
+                              } finally {
+                                if (mounted) setState(() => _mutating = false);
+                              }
+                            },
+                      icon: _mutating
+                          ? SizedBox(
+                              height: 18,
+                              width: 18,
+                              child: CircularProgressIndicator(strokeWidth: 2, color: Theme.of(context).colorScheme.onSecondary),
+                            )
+                          : const Icon(Icons.check),
+                      label: Text(_mutating ? 'Saving...' : 'Save Changes'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Theme.of(context).colorScheme.secondary,
+                        foregroundColor: Colors.black,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                ],
+              ),
+            );
+          },
         );
       },
     );
-    if (result != true) return;
-    setState(() => _mutating = true);
-    try {
-      final svc = context.read<GroupService>();
-      final updated = await svc.updateGroup(_group!.id, name: nameCtrl.text.trim(), description: descCtrl.text.trim().isEmpty ? null : descCtrl.text.trim(), isPrivate: isPrivate);
-      // Optimistically update chat list provider
-      if (mounted) {
-        context.read<ChatListProvider?>()?.updateGroupMeta(groupId: updated.id, name: updated.name, isPrivate: updated.isPrivate);
-      }
-      await _load();
-    } catch (_) {
-      setState(() => _error = 'Failed to update group');
-    } finally {
-      setState(() => _mutating = false);
-    }
   }
 
   Future<void> _confirmDelete() async {
