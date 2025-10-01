@@ -180,7 +180,8 @@ class ChatProvider extends ChangeNotifier {
       'id': m.id,
       'groupId': m.groupId,
       'message': m.message,
-      'timestamp': _formatTimestamp(m.timestamp),
+      // ensure local time for display
+      'timestamp': _formatTimestamp(m.timestamp.toLocal()),
       'senderID': m.senderId,
       'senderName': isMe ? 'You' : m.senderName,
       'senderColor': isMe ? Colors.black : Colors.white,
@@ -194,9 +195,12 @@ class ChatProvider extends ChangeNotifier {
   }
 
   String _formatTimestamp(DateTime dt) {
-    final h = dt.hour > 12 ? dt.hour - 12 : dt.hour;
+    // Normalize to local just in case caller forgets
+    dt = dt.toLocal();
+    final h24 = dt.hour;
+    final h = h24 == 0 ? 12 : (h24 > 12 ? h24 - 12 : h24);
     final m = dt.minute.toString().padLeft(2, '0');
-    final ampm = dt.hour >= 12 ? 'pm' : 'am';
+    final ampm = h24 >= 12 ? 'pm' : 'am';
     return '$h:$m $ampm';
   }
 

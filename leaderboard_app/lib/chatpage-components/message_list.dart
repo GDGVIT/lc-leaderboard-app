@@ -90,18 +90,18 @@ class _ImageMessage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final bubbleColor = isMe ? const Color(0xFFE3C17D) : Colors.grey.shade900;
     return Align(
       alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
       child: Container(
         margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.inversePrimary,
+          color: bubbleColor,
           borderRadius: BorderRadius.circular(12),
         ),
         child: Column(
-          crossAxisAlignment:
-              isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+          crossAxisAlignment: isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
           children: [
             Container(
               width: 180,
@@ -117,7 +117,7 @@ class _ImageMessage extends StatelessWidget {
             const SizedBox(height: 4),
             Text(
               msg["timestamp"] ?? "",
-              style: const TextStyle(fontSize: 10, color: Colors.black54),
+              style: TextStyle(fontSize: 10, color: isMe ? Colors.black54 : Colors.white54),
             ),
           ],
         ),
@@ -133,13 +133,14 @@ class _TextMessage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final bubbleColor = isMe ? const Color(0xFFE3C17D) : Colors.grey.shade900;
     return Align(
       alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
       child: Container(
         margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
-          color: isMe ? Theme.of(context).colorScheme.inversePrimary : Colors.grey.shade900,
+          color: bubbleColor,
           borderRadius: BorderRadius.circular(12),
         ),
         constraints: const BoxConstraints(maxWidth: 280),
