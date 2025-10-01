@@ -34,7 +34,7 @@ class MessageList extends StatelessWidget {
       itemCount: messages.length,
       itemBuilder: (context, index) {
         final msg = messages[index];
-        final isMe = msg["senderID"] == provider.currentUserID;
+  final isMe = msg["isMe"] == true;
         final isSystem = msg["senderID"] == "system";
         final isImage = msg["type"] == "image";
 
@@ -152,11 +152,11 @@ class _TextMessage extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              msg["senderName"] ?? "",
+              (isMe ? 'You' : (msg["senderName"] ?? "")),
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.bold,
-                color: msg["senderColor"] ?? Colors.white,
+                color: isMe ? Colors.black : (msg["senderColor"] ?? Colors.white),
               ),
             ),
             const SizedBox(height: 4),

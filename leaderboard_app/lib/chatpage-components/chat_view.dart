@@ -19,6 +19,7 @@ class _ChatViewState extends State<ChatView> {
   final TextEditingController _messageController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   final FocusNode myFocusNode = FocusNode();
+  int _lastMessageCount = 0; // retained for possible future usage
 
   @override
   void initState() {
@@ -29,6 +30,16 @@ class _ChatViewState extends State<ChatView> {
       }
     });
     Future.delayed(const Duration(milliseconds: 500), scrollDown);
+    // Hook into provider after first frame to attach incoming message callback
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final chat = context.read<ChatProvider>();
+      chat.onIncomingMessage = (gid) {
+        if (gid == widget.groupId) {
+          WidgetsBinding.instance.addPostFrameCallback((_) => scrollDown());
+        }
+      };
+    });
   }
 
   void scrollDown() {
@@ -43,6 +54,10 @@ class _ChatViewState extends State<ChatView> {
 
   @override
   void dispose() {
+    try {
+      final chat = context.read<ChatProvider>();
+      if (chat.onIncomingMessage != null) chat.onIncomingMessage = null;
+    } catch (_) {}
     _messageController.dispose();
     _scrollController.dispose();
     myFocusNode.dispose();
@@ -52,7 +67,7 @@ class _ChatViewState extends State<ChatView> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context).colorScheme;
-    Provider.of<ChatProvider>(context); // keep provider watch for message updates
+    final chat = Provider.of<ChatProvider>(context); // watch
 
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(),
@@ -72,7 +87,7 @@ class _ChatViewState extends State<ChatView> {
                 ),
               ).then((result) {
                 if (result is Map && result['leftGroup'] == true) {
-                  if (mounted) Navigator.of(context).pop(); // leave chat view
+                  if (mounted) Navigator.of(context).pop();
                 }
               });
             },
@@ -87,14 +102,21 @@ class _ChatViewState extends State<ChatView> {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      widget.groupName,
-                      style: TextStyle(
-                        color: theme.primary,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
+                    Row(children: [
+                      Text(
+                        widget.groupName,
+                        style: TextStyle(
+                          color: theme.primary,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
                       ),
-                    ),
+                      const SizedBox(width: 8),
+                      if (chat.isConnecting)
+                        const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2)),
+                      if (!chat.isConnecting && !chat.isConnected)
+                        const Icon(Icons.cloud_off, color: Colors.red, size: 16),
+                    ]),
                   ],
                 ),
               ],
