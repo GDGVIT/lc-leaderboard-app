@@ -10,6 +10,7 @@ import 'package:leaderboard_app/provider/user_provider.dart';
 // import 'package:leaderboard_app/models/dashboard_models.dart';
 import 'package:leaderboard_app/services/user/user_service.dart';
 import 'package:leaderboard_app/provider/dashboard_provider.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 class DashboardPage extends StatefulWidget {
@@ -138,7 +139,7 @@ class _DashboardPageState extends State<DashboardPage> {
                               builder: (_, dp, __) {
                                 if (dp.loadingSubs) return _loadingCard(height: 180);
                                 if (!dp.isVerified) {
-                                  return _verifyCard();
+                                  return _verifyCard(context);
                                 }
                                 if (dp.errorSubs != null) {
                                   return _errorCard(dp.errorSubs!);
@@ -201,23 +202,70 @@ class _DashboardPageState extends State<DashboardPage> {
     );
   }
 
-  Widget _verifyCard() {
-    return Container(
-      width: double.infinity,
-      height: 160,
-      decoration: BoxDecoration(
-        color: Colors.grey[850],
-        borderRadius: BorderRadius.circular(12),
-      ),
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: const [
-          Text('Connect your LeetCode account to see recent submissions and streaks',
-              style: TextStyle(color: Colors.white70)),
-          SizedBox(height: 8),
-          Text('Go to Settings > Verify LeetCode', style: TextStyle(color: Colors.white54, fontSize: 12)),
-        ],
+  Widget _verifyCard(BuildContext context) {
+    // Single-line actionable tile styled like the provided screenshot.
+    return GestureDetector(
+      onTap: () => context.push('/verify'),
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        decoration: BoxDecoration(
+          color: Colors.grey[850],
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Row(
+          children: [
+            // Leading icon (generic code icon since no LeetCode asset present)
+            Container(
+              width: 34,
+              height: 34,
+              decoration: BoxDecoration(
+                color: Colors.grey[800],
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: const Icon(Icons.link, color: Colors.white70, size: 18),
+            ),
+            const SizedBox(width: 12),
+            // Texts
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: const [
+                  Text(
+                    'Connect to LeetCode',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 14,
+                    ),
+                  ),
+                  SizedBox(height: 2),
+                  Text(
+                    'See recent submissions & streaks',
+                    style: TextStyle(color: Colors.white54, fontSize: 11),
+                  ),
+                ],
+              ),
+            ),
+            // Red error / attention indicator
+            Container(
+              width: 22,
+              height: 22,
+              decoration: const BoxDecoration(
+                color: Colors.redAccent,
+                shape: BoxShape.circle,
+              ),
+              alignment: Alignment.center,
+              child: const Text(
+                '!',
+                style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
+              ),
+            ),
+            const SizedBox(width: 10),
+            const Icon(Icons.chevron_right, color: Colors.white38, size: 22),
+          ],
+        ),
       ),
     );
   }
