@@ -103,7 +103,7 @@ class _DashboardPageState extends State<DashboardPage> {
                             _buildHeaderButton(
                               Icons.local_fire_department,
                               "${user.streak}",
-                              colors.secondary,
+                              Color(0xFFF6C156),
                             ),
                           ],
                         ),
