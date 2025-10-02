@@ -62,6 +62,12 @@ class DioProvider {
       options: opts,
     );
   }
+
+  /// Reset the cached Dio so a subsequent call to [getInstance] creates a
+  /// fresh client (used on logout to ensure new auth token picked up).
+  static void reset() {
+    _dio = null;
+  }
 }
 
 class _LogInterceptor extends Interceptor {

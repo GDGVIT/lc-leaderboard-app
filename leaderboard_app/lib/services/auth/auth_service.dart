@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:leaderboard_app/models/auth_models.dart';
 import 'package:leaderboard_app/services/core/api_client.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:leaderboard_app/services/core/dio_provider.dart';
 
 class AuthService {
   final Dio _dio;
@@ -44,7 +45,17 @@ class AuthService {
 
   Future<void> logout() async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.remove('authToken');
+    // Clear all persisted user-specific data on logout to avoid leaking
+    // authentication state or cached profile details between accounts.
+    // If in the future some keys should persist across logins (e.g. theme),
+    // fetch their values first and re-set them after clear().
+    await prefs.clear();
+  DioProvider.reset();
+    // Also reset any cached singletons that embed auth headers (e.g. Dio).
+    try {
+      // ignore: avoid_dynamic_calls
+      // Access the private singleton via reflection isn't possible; expose a static reset instead if needed.
+    } catch (_) {}
   }
 
   Future<Map<String, dynamic>> getProfile() async {

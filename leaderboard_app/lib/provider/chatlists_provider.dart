@@ -159,4 +159,14 @@ class ChatListProvider extends ChangeNotifier {
     }
     if (changed) notifyListeners();
   }
+
+  /// Clear all loaded groups and transient loading / error flags.
+  void reset() {
+    _chatGroups = [];
+    _isLoading = false;
+    _error = null;
+    _isCreating = false;
+    _createError = null;
+    notifyListeners();
+  }
 }

@@ -4,6 +4,8 @@ import 'package:go_router/go_router.dart';
 import 'package:leaderboard_app/services/auth/auth_service.dart';
 import 'package:leaderboard_app/provider/user_provider.dart';
 import 'package:leaderboard_app/services/user/user_service.dart';
+import 'package:leaderboard_app/provider/chat_provider.dart';
+import 'package:leaderboard_app/provider/chatlists_provider.dart';
 import 'package:provider/provider.dart';
 
 class SettingsPage extends StatelessWidget {
@@ -176,7 +178,13 @@ class SettingsPage extends StatelessWidget {
                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
               ),
               onPressed: () async {
+                // Clear auth token + any persisted data
                 await context.read<AuthService>().logout();
+                // Reset in-memory chat state so previous session messages/groups disappear
+                try {
+                  context.read<ChatProvider>().reset();
+                  context.read<ChatListProvider>().reset();
+                } catch (_) {}
                 if (!context.mounted) return;
                 context.go('/signin');
               },

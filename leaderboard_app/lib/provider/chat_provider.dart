@@ -107,18 +107,45 @@ class ChatProvider extends ChangeNotifier {
   }
 
   Future<void> sendMessage(String groupId, String text) async {
-    if (text.trim().isEmpty) return;
-    final trimmed = text.trim();
+    final raw = text;
+    if (raw.trim().isEmpty) {
+      // ignore: avoid_print
+      print('[CHAT][SEND] Abort empty text');
+      return;
+    }
+    // Ensure user + socket
+    await initIfNeeded();
+    if (!ChatService.instance.isConnected) {
+      // ignore: avoid_print
+      print('[CHAT][SEND] Socket not connected – attempting ensureSocket');
+      await _ensureSocket();
+    }
+    if (!ChatService.instance.isConnected) {
+      // ignore: avoid_print
+      print('[CHAT][SEND] Still not connected after ensureSocket');
+    }
+    // Ensure group joined (lightweight: if not joined, just emit join now)
+    if (!_joinedGroups.contains(groupId)) {
+      // ignore: avoid_print
+      print('[CHAT][SEND] Group $groupId not joined yet. Joining via socket (no history fetch).');
+      _joinedGroups.add(groupId);
+      _groupMessages.putIfAbsent(groupId, () => []);
+      ChatService.instance.joinGroup(groupId);
+    }
+    final trimmed = raw.trim();
+    // ignore: avoid_print
+    print('[CHAT][SEND] Attempt send group=$groupId len=${trimmed.length} user=$currentUserID');
     final ok = await ChatService.instance.sendMessage(
       groupId,
       trimmed,
       sender: {
         'id': currentUserID,
-        'username': 'You',
+        'username': currentUsername.isEmpty ? 'You' : currentUsername,
       },
     );
     if (!ok) {
-      // Append a system error message (optional)
+      // ignore: avoid_print
+      print('[CHAT][SEND] Failed path reached; appending system error message');
       final list = (_groupMessages[groupId] ??= []);
       list.add({
         'id': 'err-${DateTime.now().microsecondsSinceEpoch}',
@@ -202,6 +229,24 @@ class ChatProvider extends ChangeNotifier {
     final m = dt.minute.toString().padLeft(2, '0');
     final ampm = h24 >= 12 ? 'pm' : 'am';
     return '$h:$m $ampm';
+  }
+
+  /// Reset all volatile chat-related state. Call this on user logout to ensure
+  /// no data from a previous session is visible after re-authentication.
+  void reset() {
+    _groupMessages.clear();
+    _groupAttachmentVisibility.clear();
+    _joinedGroups.clear();
+    _groupCurrentPage.clear();
+    _groupHasMore.clear();
+    _loadingMoreGroups.clear();
+    _currentUserId = null;
+    _currentUsername = null;
+    _connError = null;
+    // Disconnect socket so that next authenticated session re-establishes
+    // a new connection with the correct token / identity.
+    try { ChatService.instance.disconnect(); } catch (_) {}
+    notifyListeners();
   }
 
   @override

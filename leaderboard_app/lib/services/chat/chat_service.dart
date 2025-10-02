@@ -101,8 +101,27 @@ class ChatService {
 
   /// Emit a message to server (server should broadcast back with `message:new`).
   Future<bool> sendMessage(String groupId, String text, {Map<String, dynamic>? sender}) async {
-    if (text.trim().isEmpty) return false;
-    if (!isConnected) return false;
+    if (text.trim().isEmpty) {
+      // ignore: avoid_print
+      print('[SOCKET][SEND] Abort: empty text');
+      return false;
+    }
+    if (!isConnected) {
+      // ignore: avoid_print
+      print('[SOCKET][SEND] Not connected. Attempting lazy connect before send...');
+      try {
+        // We cannot fetch token here directly; higher layer ensures ensureConnected.
+        // If still disconnected after this, fail.
+      } catch (e) {
+        // ignore: avoid_print
+        print('[SOCKET][SEND] Lazy connect exception: $e');
+      }
+      if (!isConnected) {
+        // ignore: avoid_print
+        print('[SOCKET][SEND] Fail: socket still not connected');
+        return false;
+      }
+    }
     final payload = {
       'groupId': groupId,
       'message': text.trim(),
@@ -110,9 +129,13 @@ class ChatService {
     };
     try {
       // Backend does not specify ack; emit fire-and-forget.
+      // ignore: avoid_print
+      print('[SOCKET][SEND] Emitting send_message payloadKeys=${payload.keys}');
       _socket?.emit('send_message', payload);
       return true;
-    } catch (_) {
+    } catch (err) {
+      // ignore: avoid_print
+      print('[SOCKET][SEND] Exception while emitting: $err');
       return false;
     }
   }
@@ -136,5 +159,15 @@ class ChatService {
   void dispose() {
     _messageController.close();
     _socket?.dispose();
+  }
+
+  /// Explicitly disconnect socket (without closing stream) for logout so that
+  /// a subsequent login can establish a fresh authenticated connection.
+  void disconnect() {
+    try {
+      _socket?.disconnect();
+      _socket?.destroy();
+    } catch (_) {}
+    _socket = null;
   }
 }
