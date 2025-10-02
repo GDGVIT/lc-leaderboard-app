@@ -219,7 +219,8 @@ class _TextMessageState extends State<_TextMessage> {
     final isMe = widget.isMe;
     final bubbleColor = isMe ? const Color(0xFFE3C17D) : Colors.grey.shade900;
     final textColor = isMe ? Colors.black : Colors.white;
-    final nameColor = isMe ? Colors.black : (widget.msg["senderColor"] ?? Colors.white);
+  // Username color for other users set to grey500 as requested
+  final nameColor = isMe ? Colors.black : Colors.grey.shade500;
 
     // Base offset when timestamps visible (shift left a bit to emphasize reveal)
     final baseShift = widget.showTime ? -12.0 : 0.0;
