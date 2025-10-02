@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import 'package:leaderboard_app/services/auth/auth_service.dart';
 import 'package:leaderboard_app/provider/user_provider.dart';
@@ -27,14 +28,28 @@ class SettingsPage extends StatelessWidget {
         child: ListView(
           padding: const EdgeInsets.only(left:16, right:16, top:16, bottom:24),
           children: [
-            // Title (match Group Chats styling)
-            Text(
-              'Settings',
-              style: TextStyle(
-                color: colors.primary,
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-              ),
+            // Title with SVG icon (match Chats styling)
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                SizedBox(
+                  width: 28,
+                  height: 28,
+                  child: SvgPicture.asset(
+                    'assets/icons/LL_Logo.svg',
+                    fit: BoxFit.contain,
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Text(
+                  'Settings',
+                  style: TextStyle(
+                    color: colors.primary,
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
             ),
             const SizedBox(height: 20),
 

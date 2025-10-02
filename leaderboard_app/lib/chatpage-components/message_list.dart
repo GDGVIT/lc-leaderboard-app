@@ -260,7 +260,6 @@ class _TextMessageState extends State<_TextMessage> {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  // Bubble slides left/right; timestamp stays put creating a reveal effect.
                   Transform.translate(
                     offset: Offset(effectiveShift, 0),
                     child: ConstrainedBox(
@@ -278,7 +277,7 @@ class _TextMessageState extends State<_TextMessage> {
                     ),
                   ),
                   if (widget.showTime) ...[
-                    const SizedBox(width: 6),
+                    SizedBox(width: isMe ? 6 : 43), // 6 normal; 40 extra for others
                     Align(
                       alignment: Alignment.center,
                       child: Text(

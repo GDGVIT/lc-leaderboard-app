@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:leaderboard_app/provider/chatlists_provider.dart';
 import 'package:leaderboard_app/services/groups/group_service.dart';
 import 'package:provider/provider.dart';
@@ -255,14 +256,29 @@ class _ChatlistsPageState extends State<ChatlistsPage> {
             children: [
               // Title
               Padding(
-                padding: const EdgeInsets.only(left: 16, top: 16),
-                child: Text(
-                  'Group Chats',
-                  style: TextStyle(
-                    color: theme.primary,
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                  ),
+                padding: const EdgeInsets.only(left: 16, top: 16, right: 16),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // SVG Icon
+                    SizedBox(
+                      width: 28,
+                      height: 28,
+                      child: SvgPicture.asset(
+                        'assets/icons/LL_Logo.svg',
+                        fit: BoxFit.contain,
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Text(
+                      'Chats',
+                      style: TextStyle(
+                        color: theme.primary,
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
                 ),
               ),
               const SizedBox(height: 10),
