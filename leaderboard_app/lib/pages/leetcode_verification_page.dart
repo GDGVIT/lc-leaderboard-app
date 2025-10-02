@@ -93,7 +93,7 @@ class _LeetCodeVerificationPageState extends State<LeetCodeVerificationPage> {
 											height: 45,
 											child: ElevatedButton(
 												style: ElevatedButton.styleFrom(
-													backgroundColor: const Color(0xFFD7FE66),
+													backgroundColor: const Color(0xFFE3C17D),
 													shape: RoundedRectangleBorder(
 														borderRadius: BorderRadius.circular(8),
 													),
@@ -140,7 +140,7 @@ class _LeetCodeVerificationPageState extends State<LeetCodeVerificationPage> {
 														if (_secondsLeft > 0)
 															Text(
 																'Auto-checking... $_secondsLeft s left',
-																style: const TextStyle(color: Color(0xFFD7FE66)),
+																style: const TextStyle(color: Color(0xFFE3C17D)),
 															),
 													],
 												),
@@ -149,7 +149,7 @@ class _LeetCodeVerificationPageState extends State<LeetCodeVerificationPage> {
 										const Spacer(),
 										TextButton(
 											onPressed: () => context.go('/'),
-											child: const Text('Skip for now', style: TextStyle(color: Color(0xFFD7FE66))),
+											child: const Text('Skip for now', style: TextStyle(color: Color(0xFFE3C17D))),
 										),
 									],
 								),

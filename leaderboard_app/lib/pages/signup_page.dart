@@ -135,7 +135,7 @@ class _SignUpPageState extends State<SignUpPage> {
                       height: 45,
                       child: ElevatedButton(
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFFD7FE66),
+                          backgroundColor: const Color(0xFFE3C17D),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(8),
                           ),
@@ -172,7 +172,7 @@ class _SignUpPageState extends State<SignUpPage> {
                             child: const Text(
                               "Sign in",
                               style: TextStyle(
-                                color: Color(0xFFD7FE66),
+                                color: Color(0xFFE3C17D),
                                 fontWeight: FontWeight.bold,
                                 decoration: TextDecoration.underline,
                               ),

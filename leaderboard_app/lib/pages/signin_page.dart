@@ -99,18 +99,7 @@ class _SignInPageState extends State<SignInPage> {
                         ),
                       ),
                     ),
-                    const SizedBox(height: 10),
-                    Align(
-                      alignment: Alignment.centerRight,
-                      child: TextButton(
-                        onPressed: () {},
-                        child: const Text(
-                          'Forgot Password?',
-                          style: TextStyle(color: Color(0xFFD7FE66)),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 10),
+                    const SizedBox(height: 20),
                     if (_error != null)
                       Padding(
                         padding: const EdgeInsets.only(bottom: 8.0),
@@ -121,7 +110,7 @@ class _SignInPageState extends State<SignInPage> {
                       height: 45,
                       child: ElevatedButton(
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFFD7FE66),
+                          backgroundColor: const Color(0xFFE3C17D),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(8),
                           ),
@@ -158,7 +147,7 @@ class _SignInPageState extends State<SignInPage> {
                             child: const Text(
                               "Sign up",
                               style: TextStyle(
-                                color: Color(0xFFD7FE66),
+                                color: Color(0xFFE3C17D),
                                 fontWeight: FontWeight.bold,
                                 decoration: TextDecoration.underline,
                               ),
