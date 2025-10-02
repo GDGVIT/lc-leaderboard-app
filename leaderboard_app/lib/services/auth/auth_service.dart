@@ -3,6 +3,7 @@ import 'package:leaderboard_app/models/auth_models.dart';
 import 'package:leaderboard_app/services/core/api_client.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:leaderboard_app/services/core/dio_provider.dart';
+import 'package:leaderboard_app/services/chat/chat_service.dart';
 
 class AuthService {
   final Dio _dio;
@@ -26,6 +27,8 @@ class AuthService {
       return login;
     } else {
       await _saveAuth(response.token);
+      // Initialize a fresh socket connection with the new token.
+      try { await ChatService.instance.connectWithToken(response.token); } catch (_) {}
       return response;
     }
   }
@@ -40,6 +43,8 @@ class AuthService {
       throw DioException(requestOptions: res.requestOptions, response: res, message: 'Token missing in response');
     }
     await _saveAuth(response.token);
+    // After storing token, connect socket with new identity.
+    try { await ChatService.instance.connectWithToken(response.token); } catch (_) {}
     return response;
   }
 
@@ -51,6 +56,8 @@ class AuthService {
     // fetch their values first and re-set them after clear().
     await prefs.clear();
   DioProvider.reset();
+    // Proactively disconnect socket (in case ChatProvider not yet instantiated to reset it)
+    try { ChatService.instance.disconnect(); } catch (_) {}
     // Also reset any cached singletons that embed auth headers (e.g. Dio).
     try {
       // ignore: avoid_dynamic_calls

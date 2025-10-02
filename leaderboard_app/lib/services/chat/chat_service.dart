@@ -37,31 +37,13 @@ class ChatService {
       });
       final completer = Completer<void>();
       socket.on('connect', (_) {
-        // Basic event logging hook
-        socket.onAny((event, data) {
-          // ignore: avoid_print
-          print('[SOCKET] event=$event data=${data is Map ? data.keys : data}');
-        });
+        _attachCommonListeners(socket);
         completer.complete();
       });
       socket.on('connect_error', (err) {
         lastError = err.toString();
         if (!completer.isCompleted) completer.completeError(err);
       });
-      // Server → Client: receive_message
-      socket.on('receive_message', (data) {
-        if (data is Map) {
-          try {
-            final msg = ChatMessage.fromSocket(_normalizeSocketPayload(Map<String, dynamic>.from(data)));
-            _messageController.add(msg);
-          } catch (e) {
-            // ignore
-          }
-        }
-      });
-      // Joined group ack: add minimal log
-      socket.on('joined_group', (d) => print('[SOCKET] joined_group: $d'));
-      socket.on('error', (e) => print('[SOCKET] server_error: $e'));
       socket.connect();
       _socket = socket;
       await completer.future.timeout(const Duration(seconds: 8));
@@ -169,5 +151,82 @@ class ChatService {
       _socket?.destroy();
     } catch (_) {}
     _socket = null;
+  }
+
+  /// Force a brand-new socket connection using the supplied JWT. This should
+  /// be called immediately after a successful login to ensure the socket
+  /// authenticates as the new user and does not reuse prior connection state.
+  Future<void> connectWithToken(String jwt, {List<String> rejoinGroupIds = const []}) async {
+    // Tear down any existing connection fully.
+    disconnect();
+    lastError = null;
+    _connecting = true;
+    final base = ApiConfig.baseUrl;
+    final wsBase = base.replaceFirst('/api', '');
+    try {
+      final socket = io.io(wsBase, <String, dynamic>{
+        'transports': ['websocket'],
+        'autoConnect': false,
+        'forceNew': true, // ensure a new engine.io session
+        'auth': {'token': jwt},
+      });
+      final completer = Completer<void>();
+      socket.on('connect', (_) {
+        // ignore: avoid_print
+        print('[SOCKET] Connected (forceNew)');
+        _attachCommonListeners(socket);
+        // Rejoin prior groups if provided
+        for (final gid in rejoinGroupIds) {
+          socket.emit('join_group', gid);
+        }
+        completer.complete();
+      });
+      socket.on('connect_error', (err) {
+        lastError = err.toString();
+        if (!completer.isCompleted) completer.completeError(err);
+      });
+      _socket = socket;
+      socket.connect();
+      await completer.future.timeout(const Duration(seconds: 8));
+    } catch (e) {
+      lastError = e.toString();
+      rethrow;
+    } finally {
+      _connecting = false;
+    }
+  }
+
+  /// Attach listeners common to both normal and forceNew connections.
+  void _attachCommonListeners(io.Socket socket) {
+    // Generic event tracer.
+    socket.onAny((event, data) {
+      // ignore: avoid_print
+      print('[SOCKET][EVENT] $event');
+    });
+    // Detailed receive logging.
+    socket.on('receive_message', (data) {
+      // ignore: avoid_print
+      print('[SOCKET][RECEIVE] raw=${data.runtimeType} -> $data');
+      if (data is Map) {
+        try {
+          final msg = ChatMessage.fromSocket(_normalizeSocketPayload(Map<String, dynamic>.from(data)));
+          _messageController.add(msg);
+        } catch (e) {
+          // ignore: avoid_print
+          print('[SOCKET][RECEIVE] parse error: $e');
+        }
+      } else {
+        // ignore: avoid_print
+        print('[SOCKET][RECEIVE] unexpected payload type; ignoring');
+      }
+    });
+    socket.on('joined_group', (d) {
+      // ignore: avoid_print
+      print('[SOCKET] joined_group: $d');
+    });
+    socket.on('error', (e) {
+      // ignore: avoid_print
+      print('[SOCKET] server_error: $e');
+    });
   }
 }
