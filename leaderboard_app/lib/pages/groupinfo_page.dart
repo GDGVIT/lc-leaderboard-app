@@ -162,15 +162,11 @@ class _GroupInfoPageState extends State<GroupInfoPage> {
                   case 'delete':
                     await _confirmDelete();
                     break;
-                  case 'transfer':
-                    await _promptTransferOwnership();
-                    break;
                 }
               },
               itemBuilder: (context) => [
                 const PopupMenuItem(value: 'edit', child: Text('Edit Group')),
                 const PopupMenuItem(value: 'delete', child: Text('Delete Group')),
-                if (_isOwner) const PopupMenuItem(value: 'transfer', child: Text('Transfer Ownership')),
               ],
       ),
     ],
@@ -203,18 +199,50 @@ class _GroupInfoPageState extends State<GroupInfoPage> {
                           textAlign: TextAlign.center,
                         ),
                       const SizedBox(height: 12),
-                      SizedBox(
-                        width: double.infinity,
-                        child: ElevatedButton(
-                          onPressed: _mutating ? null : _joinLeave,
-                          style: ElevatedButton.styleFrom(backgroundColor: theme.secondary),
-                          child: Text(_isMember ? 'Leave Group' : 'Join Group', style: const TextStyle(color: Colors.black)),
+                      // Join button (only when not already a member). Leave button moved below leaderboard.
+                      if (!_isMember)
+                        Center(
+                          child: FractionallySizedBox(
+                            widthFactor: 0.5, // half-width similar to leave button
+                            child: ElevatedButton(
+                              onPressed: _mutating ? null : _joinLeave,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: theme.secondary,
+                                foregroundColor: Colors.black,
+                                padding: const EdgeInsets.symmetric(vertical: 8),
+                                textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                minimumSize: const Size(0, 36),
+                              ),
+                              child: Text(_mutating ? 'Joining...' : 'Join Group'),
+                            ),
+                          ),
                         ),
-                      ),
                       const SizedBox(height: 16),
                       _membersCard(_group?.members ?? const []),
                       const SizedBox(height: 16),
                       _xpTable(_group?.members ?? const []),
+                      const SizedBox(height: 16),
+                      // Red leave button placed below the top players table as requested.
+                      if (_isMember)
+                        Center(
+                          child: FractionallySizedBox(
+                            widthFactor: 0.5, // half of available width
+                            child: ElevatedButton(
+                              onPressed: _mutating ? null : _joinLeave,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.redAccent,
+                                disabledBackgroundColor: Colors.redAccent.withOpacity(0.5),
+                                foregroundColor: Colors.white,
+                                padding: const EdgeInsets.symmetric(vertical: 8),
+                                textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                minimumSize: const Size(0, 36),
+                              ),
+                              child: Text(_mutating ? 'Leaving...' : 'Leave Group'),
+                            ),
+                          ),
+                        ),
                       const SizedBox(height: 20),
                     ],
                   ),
@@ -242,7 +270,7 @@ class _GroupInfoPageState extends State<GroupInfoPage> {
 
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.zero, // Removed padding so divider lines span edge-to-edge
       decoration: BoxDecoration(
         color: Colors.grey.shade900,
         borderRadius: BorderRadius.circular(12),
@@ -250,59 +278,94 @@ class _GroupInfoPageState extends State<GroupInfoPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Members', style: TextStyle(fontSize: 18)),
-          const SizedBox(height: 12),
-          ...sorted.map((m) => Padding(
-                padding: const EdgeInsets.only(bottom: 10),
-                child: Row(
-                  children: [
-                    CircleAvatar(
-                      radius: 18,
-                      backgroundColor: Colors.grey.shade700,
-                      child: Text(
-                        (m.user?.username.isNotEmpty == true) ? m.user!.username[0] : '?',
-                        style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+          // Local padding for header only (keeps container itself unpadded for full-width lines)
+          const Padding(
+            padding: EdgeInsets.fromLTRB(16, 16, 16, 12),
+            child: Text('Members', style: TextStyle(fontSize: 18)),
+          ),
+          // Top divider above the first member row
+          Divider(
+            color: Colors.grey.shade500,
+            height: 1,
+            thickness: 1,
+          ),
+          for (int i = 0; i < sorted.length; i++) ...[
+            Padding(
+              // Maintain horizontal padding for content while allowing dividers to stretch full width
+              padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 16),
+              child: Row(
+                children: [
+                  CircleAvatar(
+                    radius: 18,
+                    backgroundColor: Colors.grey.shade700,
+                    child: Text(
+                      (sorted[i].user?.username.isNotEmpty == true) ? sorted[i].user!.username[0] : '?',
+                      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Text(
+                    sorted[i].user?.username ?? sorted[i].userId,
+                    style: const TextStyle(color: Colors.white70, fontSize: 16),
+                  ),
+                  const Spacer(),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 4),
+                    child: Text(
+                      sorted[i].role,
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: Colors.grey.shade300,
+                        fontWeight: FontWeight.w500,
+                        letterSpacing: 0.5,
                       ),
                     ),
-                    const SizedBox(width: 12),
-                    Text(
-                      m.user?.username ?? m.userId,
-                      style: const TextStyle(color: Colors.white70, fontSize: 16),
-                    ),
-                    const Spacer(),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                      decoration: BoxDecoration(color: Colors.blueGrey.shade700, borderRadius: BorderRadius.circular(8)),
-                      child: Text(m.role, style: const TextStyle(fontSize: 12)),
-                    ),
-                    if (_canManage(m))
-                      PopupMenuButton<String>(
-                        onSelected: (value) async {
-                          switch (value) {
-                            case 'remove':
-                              if (_canManage(m)) await _removeMember(m);
-                              break;
-                            case 'promote':
-                              if (_canManage(m)) await _changeRole(m, 'ADMIN');
-                              break;
-                            case 'demote':
-                              if (_canManage(m)) await _changeRole(m, 'MEMBER');
-                              break;
-                            case 'makeOwner':
-                              if (_isOwner && m.role.toUpperCase() != 'OWNER') await _transferOwnershipTo(m);
-                              break;
-                          }
-                        },
-                        itemBuilder: (context) => [
-                          const PopupMenuItem(value: 'remove', child: Text('Remove')),
-                          const PopupMenuItem(value: 'promote', child: Text('Promote to Admin')),
-                          const PopupMenuItem(value: 'demote', child: Text('Demote to Member')),
-                          if (_isOwner && m.role.toUpperCase() != 'OWNER') const PopupMenuItem(value: 'makeOwner', child: Text('Make Owner')),
-                        ],
-                      ),
-                  ],
-                ),
-              )),
+                  ),
+                  PopupMenuButton<String>(
+                    tooltip: 'Member actions',
+                    icon: const Icon(Icons.chevron_right, color: Colors.white70, size: 20),
+                    onSelected: (value) async {
+                      final m = sorted[i];
+                      switch (value) {
+                        case 'remove':
+                          if (_canManage(m)) await _removeMember(m);
+                          break;
+                        case 'promote':
+                          if (_canManage(m)) await _changeRole(m, 'ADMIN');
+                          break;
+                        case 'demote':
+                          if (_canManage(m)) await _changeRole(m, 'MEMBER');
+                          break;
+                      }
+                    },
+                    itemBuilder: (context) {
+                      final m = sorted[i];
+                      final can = _canManage(m);
+                      if (!can) {
+                        return const [
+                          PopupMenuItem<String>(
+                            enabled: false,
+                            child: Text('No actions available'),
+                          ),
+                        ];
+                      }
+                      return [
+                        const PopupMenuItem(value: 'remove', child: Text('Remove')),
+                        if (m.role.toUpperCase() == 'MEMBER') const PopupMenuItem(value: 'promote', child: Text('Promote to Admin')),
+                        if (m.role.toUpperCase() == 'ADMIN' || m.role.toUpperCase() == 'MODERATOR') const PopupMenuItem(value: 'demote', child: Text('Demote to Member')),
+                      ];
+                    },
+                  ),
+                ],
+              ),
+            ),
+            if (i < sorted.length - 1)
+              Divider(
+                color: Colors.grey.shade800,
+                height: 1,
+                thickness: 1,
+              ),
+          ],
         ],
       ),
     );
@@ -596,56 +659,6 @@ class _GroupInfoPageState extends State<GroupInfoPage> {
       await _load();
     } catch (_) {
       setState(() => _error = 'Failed to update role');
-    } finally {
-      setState(() => _mutating = false);
-    }
-  }
-
-  Future<void> _promptTransferOwnership() async {
-    if (_group == null) return;
-    final members = _group!.members.where((m) => m.userId != _currentUserId).toList();
-    String? selectedUserId = members.isNotEmpty ? members.first.userId : null;
-    final ok = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: Colors.grey[900],
-        title: const Text('Transfer Ownership'),
-        content: DropdownButton<String>(
-          value: selectedUserId,
-          items: members
-              .map((m) => DropdownMenuItem(
-                    value: m.userId,
-                    child: Text(m.user?.username ?? m.userId),
-                  ))
-              .toList(),
-          onChanged: (v) {
-            selectedUserId = v;
-          },
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
-          TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('Transfer')),
-        ],
-      ),
-    );
-    if (ok == true && selectedUserId != null) {
-      await _transferOwnershipToUserId(selectedUserId!);
-    }
-  }
-
-  Future<void> _transferOwnershipTo(GroupMember m) async {
-    await _transferOwnershipToUserId(m.userId);
-  }
-
-  Future<void> _transferOwnershipToUserId(String userId) async {
-    if (_group == null) return;
-    setState(() => _mutating = true);
-    try {
-      final svc = context.read<GroupService>();
-      await svc.transferOwnership(_group!.id, userId);
-      await _load();
-    } catch (_) {
-      setState(() => _error = 'Failed to transfer ownership');
     } finally {
       setState(() => _mutating = false);
     }
