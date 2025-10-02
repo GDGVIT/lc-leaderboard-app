@@ -66,22 +66,16 @@ class SettingsPage extends StatelessWidget {
               children: [
                 Center(
                   child: CircleAvatar(
-                    radius: 40,
+                    radius: 50,
                     backgroundColor: colors.tertiary.withOpacity(0.3),
                     child: Icon(
                       Icons.person,
-                      size: 32,
+                      size: 40,
                       color: colors.primary,
                     ),
                   ),
                 ),
                 const SizedBox(height: 10),
-
-                Divider(
-                  height: 1,
-                  thickness: 0.6,
-                  color: colors.primary.withOpacity(0.3),
-                ),
 
                 // Username
                 _buildDisplayTile('Username', '@$username', colors),
@@ -102,6 +96,7 @@ class SettingsPage extends StatelessWidget {
                   thickness: 0.6,
                   color: colors.primary.withOpacity(0.3),
                 ),
+                SizedBox(height: 12),
                 // LeetCode handle & verify section
                 if (verified)
                   _buildDisplayTile('LeetCode', handle ?? '-', colors)
@@ -133,7 +128,7 @@ class SettingsPage extends StatelessWidget {
                             style: ElevatedButton.styleFrom(
                               backgroundColor: colors.secondary,
                               foregroundColor: Colors.black,
-                              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+                              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                             ),
                             child: const Text('Verify'),
                           ),
@@ -141,6 +136,7 @@ class SettingsPage extends StatelessWidget {
                       ),
                     ],
                   ),
+                  SizedBox(height: 12),
                 Divider(
                   height: 1,
                   thickness: 0.6,
@@ -154,7 +150,6 @@ class SettingsPage extends StatelessWidget {
 
           const SizedBox(height: 25),
           // Removed password & authentication section per request
-          const SizedBox(height: 4),
 
           // ====== Logout button (full-width) ======
           SizedBox(
