@@ -278,7 +278,7 @@ class _TextMessageState extends State<_TextMessage> {
                     ),
                   ),
                   if (widget.showTime) ...[
-                    SizedBox(width: isMe ? 6 : 34), // 6 normal; 40 extra for others
+                    Spacer(),
                     Align(
                       alignment: Alignment.center,
                       child: Text(
