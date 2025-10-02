@@ -262,8 +262,8 @@ class _ChatlistsPageState extends State<ChatlistsPage> {
                   children: [
                     // SVG Icon
                     SizedBox(
-                      width: 28,
-                      height: 28,
+                      width: 35,
+                      height: 35,
                       child: SvgPicture.asset(
                         'assets/icons/LL_Logo.svg',
                         fit: BoxFit.contain,

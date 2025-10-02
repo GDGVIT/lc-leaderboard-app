@@ -32,6 +32,7 @@ dev_dependencies:
   retrofit_generator: ^9.1.5
   json_serializable: ^6.8.0
   flutter_native_splash: ^2.4.1
+  flutter_launcher_icons: ^0.13.1
 
 flutter:
   uses-material-design: true
@@ -46,9 +47,23 @@ flutter:
         - asset: fonts/AlumniSans-Italic-VariableFont_wght.ttf
 
 flutter_native_splash:
-  color: "#FFFFFF"
-  image: assets/icons/google.png
+  color: "#000000"        # Dark backdrop
+  image: assets/icons/LL_Logo.png  # PNG version of logo (exported from SVG)
   android_12:
-    image: assets/icons/google.png
-    color: "#FFFFFF"
+    image: assets/icons/LL_Logo.png
+    color: "#000000"
+    icon_background_color: "#000000"
+  ios: true
   web: false
+  android: true
+  fullscreen: true
+  # Optionally keep branding image off for now
+
+# App icon generation config
+flutter_icons:
+  android: true
+  ios: true
+  image_path: assets/icons/LL_Logo.png
+  adaptive_icon_background: "#000000"
+  adaptive_icon_foreground: assets/icons/LL_Logo.png
+  min_sdk_android: 21

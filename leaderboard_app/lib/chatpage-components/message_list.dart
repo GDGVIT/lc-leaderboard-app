@@ -103,16 +103,16 @@ class _SystemMessage extends StatelessWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(msg["icon"] ?? Icons.info, size: 16, color: Colors.white),
+            Icon(msg["icon"] ?? Icons.info, size: 18, color: Colors.white),
             const SizedBox(width: 6),
             Text(
               msg["message"] ?? "",
-              style: const TextStyle(color: Colors.white, fontSize: 12),
+              style: const TextStyle(color: Colors.white, fontSize: 14),
             ),
             const SizedBox(width: 6),
             Text(
               msg["timestamp"] ?? "",
-              style: const TextStyle(color: Colors.white54, fontSize: 10),
+              style: const TextStyle(color: Colors.white54, fontSize: 12),
             ),
           ],
         ),
@@ -149,13 +149,13 @@ class _ImageMessage extends StatelessWidget {
                 borderRadius: BorderRadius.circular(12),
               ),
               child: const Center(
-                child: Icon(Pixel.image, size: 64, color: Colors.grey),
+                child: Icon(Pixel.image, size: 66, color: Colors.grey),
               ),
             ),
             const SizedBox(height: 4),
             Text(
               msg["timestamp"] ?? "",
-              style: TextStyle(fontSize: 10, color: isMe ? Colors.black54 : Colors.white54),
+              style: TextStyle(fontSize: 12, color: isMe ? Colors.black54 : Colors.white54),
             ),
           ],
         ),
@@ -247,7 +247,7 @@ class _TextMessageState extends State<_TextMessage> {
                         Text(
                           widget.msg["senderName"] ?? '',
                           style: TextStyle(
-                            fontSize: 12,
+                            fontSize: 14,
                             fontWeight: FontWeight.bold,
                             color: nameColor,
                           ),
@@ -271,19 +271,19 @@ class _TextMessageState extends State<_TextMessage> {
                         tail: widget.tail,
                         textStyle: TextStyle(
                           color: textColor,
-                          fontSize: 14,
+                          fontSize: 16,
                         ),
                       ),
                     ),
                   ),
                   if (widget.showTime) ...[
-                    SizedBox(width: isMe ? 6 : 43), // 6 normal; 40 extra for others
+                    SizedBox(width: isMe ? 6 : 34), // 6 normal; 40 extra for others
                     Align(
                       alignment: Alignment.center,
                       child: Text(
                         widget.msg["timestamp"] ?? '',
                         style: TextStyle(
-                          fontSize: 10,
+                          fontSize: 12,
                           color: Colors.white54,
                         ),
                       ),
