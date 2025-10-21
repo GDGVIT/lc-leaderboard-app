@@ -19,7 +19,6 @@ class _ChatViewState extends State<ChatView> {
   final TextEditingController _messageController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   final FocusNode myFocusNode = FocusNode();
-  int _lastMessageCount = 0; // retained for possible future usage
   bool _didInitialAutoScroll = false; // guard to only auto-scroll once after history loads
 
   @override

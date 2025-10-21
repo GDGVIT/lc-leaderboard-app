@@ -128,6 +128,18 @@ class _AppInitializerState extends State<_AppInitializer> {
   }
 
   Future<void> _init() async {
+    // If not logged in, skip any data preload and go straight to router
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('authToken') ?? '';
+
+    if (token.isEmpty) {
+      if (mounted) {
+        setState(() => _ready = true);
+        FlutterNativeSplash.remove();
+      }
+      return;
+    }
+
     final connectivity = context.read<ConnectivityProvider>();
     // Wait a tick for connectivity to initialize
     await Future.delayed(const Duration(milliseconds: 50));
@@ -160,6 +172,11 @@ class _AppInitializerState extends State<_AppInitializer> {
 
   Future<void> _preload() async {
     final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('authToken') ?? '';
+    if (token.isEmpty) {
+      // Not logged in; nothing to preload.
+      return;
+    }
     final returning = prefs.getBool('returningUser') ?? false;
     final userProvider = context.read<UserProvider>();
     final dashboardProvider = context.read<DashboardProvider>();
