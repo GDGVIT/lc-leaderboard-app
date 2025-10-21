@@ -95,8 +95,8 @@ class _ChatViewState extends State<ChatView> {
                   builder: (_) => GroupInfoPage(groupId: widget.groupId, initialName: widget.groupName),
                 ),
               ).then((result) {
-                if (result is Map && result['leftGroup'] == true) {
-                  if (mounted) Navigator.of(context).pop();
+                if (result is Map && (result['leftGroup'] == true || result['deletedGroup'] == true)) {
+                  if (mounted) Navigator.of(context).pop(result);
                 }
               });
             },

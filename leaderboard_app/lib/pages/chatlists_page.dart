@@ -203,6 +203,11 @@ class _ChatlistsPageState extends State<ChatlistsPage> {
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   const SnackBar(content: Text('Group created')),
                                 );
+                                // Refresh lists to reflect membership and server-derived fields
+                                // (e.g., lastMessage, counts, privacy flags, etc.)
+                                // Uses current search filter.
+                                // Fire-and-forget; UI already shows snackbar feedback.
+                                unawaited(_refresh());
                               }
                             },
                       icon: provider.isCreating
@@ -433,19 +438,26 @@ class _ChatlistsPageState extends State<ChatlistsPage> {
                                   }
                                   if (!mounted) return;
                                   if (isMember) {
-                                    Navigator.push(
+                                    final result = await Navigator.push(
                                       context,
                                       MaterialPageRoute(
                                         builder: (context) => ChatPage(groupId: groupId, groupName: groupName),
                                       ),
                                     );
+                                    if (result is Map && (result['deletedGroup'] == true || result['leftGroup'] == true || result['updated'] == true)) {
+                                      await _refresh();
+                                    }
                                   } else {
-                                    Navigator.push(
+                                    final result = await Navigator.push(
                                       context,
                                       MaterialPageRoute(
                                         builder: (context) => GroupInfoPage(groupId: groupId, initialName: groupName),
                                       ),
                                     );
+                                    // If group was deleted or membership changed, refresh list on return
+                                    if (result is Map && (result['deletedGroup'] == true || result['leftGroup'] == true || result['updated'] == true)) {
+                                      await _refresh();
+                                    }
                                   }
                                 },
                                 child: Container(

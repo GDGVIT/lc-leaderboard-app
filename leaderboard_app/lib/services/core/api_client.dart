@@ -1,6 +1,6 @@
 import 'package:dio/dio.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:leaderboard_app/config/api_config.dart';
+import 'package:leaderboard_app/services/core/dio_provider.dart';
 
 class ApiClient {
   static final String kBaseUrl = ApiConfig.baseUrl;
@@ -9,34 +9,7 @@ class ApiClient {
   ApiClient._internal(this.dio);
 
   static Future<ApiClient> create({String? baseUrl}) async {
-    final prefs = await SharedPreferences.getInstance();
-    final dio = Dio(
-      BaseOptions(
-        baseUrl: baseUrl ?? kBaseUrl,
-        connectTimeout: const Duration(seconds: 10),
-        receiveTimeout: const Duration(seconds: 20),
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      ),
-    );
-
-    dio.interceptors.add(
-      InterceptorsWrapper(
-        onRequest: (options, handler) async {
-          final token = prefs.getString('authToken');
-          if (token != null && token.isNotEmpty) {
-            options.headers['Authorization'] = 'Bearer $token';
-          }
-          handler.next(options);
-        },
-        onError: (e, handler) {
-          // You can add logging or global error handling here
-          handler.next(e);
-        },
-      ),
-    );
-
+    final dio = await DioProvider.getInstance(baseUrl: baseUrl ?? kBaseUrl);
     return ApiClient._internal(dio);
   }
 }

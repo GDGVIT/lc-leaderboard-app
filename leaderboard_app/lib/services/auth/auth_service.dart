@@ -4,6 +4,7 @@ import 'package:leaderboard_app/services/core/api_client.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:leaderboard_app/services/core/dio_provider.dart';
 import 'package:leaderboard_app/services/chat/chat_service.dart';
+import 'package:leaderboard_app/services/core/token_manager.dart';
 
 class AuthService {
   final Dio _dio;
@@ -26,7 +27,7 @@ class AuthService {
       final login = await signIn(email: email, password: password);
       return login;
     } else {
-      await _saveAuth(response.token);
+      await _saveAuth(response.token, refreshToken: response.refreshToken);
       // Initialize a fresh socket connection with the new token.
       try { await ChatService.instance.connectWithToken(response.token); } catch (_) {}
       return response;
@@ -42,20 +43,21 @@ class AuthService {
     if (response.token.isEmpty) {
       throw DioException(requestOptions: res.requestOptions, response: res, message: 'Token missing in response');
     }
-    await _saveAuth(response.token);
+    await _saveAuth(response.token, refreshToken: response.refreshToken);
     // After storing token, connect socket with new identity.
     try { await ChatService.instance.connectWithToken(response.token); } catch (_) {}
     return response;
   }
 
   Future<void> logout() async {
-    final prefs = await SharedPreferences.getInstance();
+  final prefs = await SharedPreferences.getInstance();
     // Clear all persisted user-specific data on logout to avoid leaking
     // authentication state or cached profile details between accounts.
     // If in the future some keys should persist across logins (e.g. theme),
     // fetch their values first and re-set them after clear().
     await prefs.clear();
-  DioProvider.reset();
+    await TokenManager.clearTokens();
+    DioProvider.reset();
     // Proactively disconnect socket (in case ChatProvider not yet instantiated to reset it)
     try { ChatService.instance.disconnect(); } catch (_) {}
     // Also reset any cached singletons that embed auth headers (e.g. Dio).
@@ -79,8 +81,7 @@ class AuthService {
     return User.fromJson(userJson);
   }
 
-  Future<void> _saveAuth(String token) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('authToken', token);
+  Future<void> _saveAuth(String token, {String? refreshToken}) async {
+    await TokenManager.saveTokens(accessToken: token, refreshToken: refreshToken);
   }
 }

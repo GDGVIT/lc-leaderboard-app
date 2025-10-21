@@ -13,7 +13,10 @@ class DashboardService {
   }
 
   Future<List<SubmissionItem>> getUserSubmissions() async {
-    final res = await _dio.get('/dashboard/submissions');
+    final res = await _dio.get(
+      '/dashboard/submissions',
+      options: Options(receiveTimeout: const Duration(seconds: 60)),
+    );
     final body = res.data as Map<String, dynamic>;
     // Attempt structured parsing
     try {
@@ -33,7 +36,10 @@ class DashboardService {
   }
 
   Future<DailyQuestion?> getDailyQuestion() async {
-  final res = await _dio.get('/dashboard/daily');
+  final res = await _dio.get(
+    '/dashboard/daily',
+    options: Options(receiveTimeout: const Duration(seconds: 60)),
+  );
   final body = res.data as Map<String, dynamic>;
   final data = (body['data'] ?? body) as Map<String, dynamic>;
   final dq = (data['dailyQuestion'] ?? data['daily'] ?? data['question'] ?? data) as dynamic;
@@ -42,7 +48,10 @@ class DashboardService {
   }
 
   Future<List<TopUser>> getTopUsers() async {
-  final res = await _dio.get('/dashboard/leaderboard');
+  final res = await _dio.get(
+    '/dashboard/leaderboard',
+    options: Options(receiveTimeout: const Duration(seconds: 60)),
+  );
   final body = res.data as Map<String, dynamic>;
   final data = (body['data'] ?? body) as Map<String, dynamic>;
   final raw = (data['leaderboard'] ?? data['users'] ?? data['results'] ?? data) as dynamic;
@@ -57,7 +66,10 @@ class DashboardService {
   // New: explicit getLeaderboard support. Tries /leaderboard first, falls back to /dashboard/leaderboard.
   Future<List<TopUser>> getLeaderboard() async {
     try {
-      final res = await _dio.get('/leaderboard');
+      final res = await _dio.get(
+        '/leaderboard',
+        options: Options(receiveTimeout: const Duration(seconds: 60)),
+      );
       final body = res.data as Map<String, dynamic>;
       final data = (body['data'] ?? body) as Map<String, dynamic>;
       final raw = (data['leaderboard'] ?? data['users'] ?? []) as List<dynamic>;

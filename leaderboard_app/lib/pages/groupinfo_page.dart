@@ -627,8 +627,9 @@ class _GroupInfoPageState extends State<GroupInfoPage> {
         final chatListProv = context.read<ChatListProvider?>();
         chatListProv?.removeGroup(_group!.id);
       }
-      if (!mounted) return;
-      Navigator.of(context).pop();
+  if (!mounted) return;
+  // Return a signal so the previous page can refresh its data.
+  Navigator.of(context).pop({'deletedGroup': true, 'groupId': _group!.id});
     } catch (_) {
       setState(() => _error = 'Failed to delete group');
     } finally {
