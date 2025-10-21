@@ -1,4 +1,4 @@
-package com.example.leaderboard_app
+package com.dscvit.leeterboard
 
 import io.flutter.embedding.android.FlutterActivity
 
