@@ -1,9 +1,9 @@
 import 'dart:async';
 import 'package:socket_io_client/socket_io_client.dart' as io;
-import 'package:leaderboard_app/config/api_config.dart';
-import 'package:leaderboard_app/services/core/dio_provider.dart';
-import 'package:leaderboard_app/models/chat_message.dart';
-import 'package:leaderboard_app/models/chat_message_dto.dart';
+import 'package:leeterboard/config/api_config.dart';
+import 'package:leeterboard/services/core/dio_provider.dart';
+import 'package:leeterboard/models/chat_message.dart';
+import 'package:leeterboard/models/chat_message_dto.dart';
 
 typedef MessageHandler = void Function(ChatMessage message);
 
@@ -26,8 +26,8 @@ class ChatService {
     if (isConnected || _connecting) return;
     _connecting = true;
     lastError = null;
-  final base = ApiConfig.baseUrl; // e.g. http://host:port/api
-  final wsBase = base.replaceFirst('/api', '');
+    final base = ApiConfig.baseUrl; // e.g. http://host:port/api
+    final wsBase = base.replaceFirst('/api', '');
     try {
       final socket = io.io(wsBase, <String, dynamic>{
         'transports': ['websocket'],
@@ -66,10 +66,7 @@ class ChatService {
     // Ensure sender structure
     if (raw['sender'] is! Map) {
       final id = raw['senderId'] ?? raw['senderID'];
-      raw['sender'] = {
-        'id': id,
-        'username': raw['senderName'] ?? 'User',
-      };
+      raw['sender'] = {'id': id, 'username': raw['senderName'] ?? 'User'};
     }
     return raw;
   }
@@ -82,7 +79,11 @@ class ChatService {
   }
 
   /// Emit a message to server (server should broadcast back with `message:new`).
-  Future<bool> sendMessage(String groupId, String text, {Map<String, dynamic>? sender}) async {
+  Future<bool> sendMessage(
+    String groupId,
+    String text, {
+    Map<String, dynamic>? sender,
+  }) async {
     if (text.trim().isEmpty) {
       // ignore: avoid_print
       print('[SOCKET][SEND] Abort: empty text');
@@ -90,7 +91,9 @@ class ChatService {
     }
     if (!isConnected) {
       // ignore: avoid_print
-      print('[SOCKET][SEND] Not connected. Attempting lazy connect before send...');
+      print(
+        '[SOCKET][SEND] Not connected. Attempting lazy connect before send...',
+      );
       try {
         // We cannot fetch token here directly; higher layer ensures ensureConnected.
         // If still disconnected after this, fail.
@@ -123,12 +126,16 @@ class ChatService {
   }
 
   /// Retrieve paginated message history using the documented REST endpoint.
-  Future<List<ChatMessage>> fetchHistory(String groupId, {int page = 1, int limit = 50}) async {
+  Future<List<ChatMessage>> fetchHistory(
+    String groupId, {
+    int page = 1,
+    int limit = 50,
+  }) async {
     final dio = await DioProvider.getInstance();
-    final res = await dio.get('/messages/groups/$groupId', queryParameters: {
-      'page': page,
-      'limit': limit,
-    });
+    final res = await dio.get(
+      '/messages/groups/$groupId',
+      queryParameters: {'page': page, 'limit': limit},
+    );
     final data = res.data;
     final list = (data['data']?['messages'] ?? []) as List<dynamic>;
     return list
@@ -156,7 +163,10 @@ class ChatService {
   /// Force a brand-new socket connection using the supplied JWT. This should
   /// be called immediately after a successful login to ensure the socket
   /// authenticates as the new user and does not reuse prior connection state.
-  Future<void> connectWithToken(String jwt, {List<String> rejoinGroupIds = const []}) async {
+  Future<void> connectWithToken(
+    String jwt, {
+    List<String> rejoinGroupIds = const [],
+  }) async {
     // Tear down any existing connection fully.
     disconnect();
     lastError = null;
@@ -209,7 +219,9 @@ class ChatService {
       print('[SOCKET][RECEIVE] raw=${data.runtimeType} -> $data');
       if (data is Map) {
         try {
-          final msg = ChatMessage.fromSocket(_normalizeSocketPayload(Map<String, dynamic>.from(data)));
+          final msg = ChatMessage.fromSocket(
+            _normalizeSocketPayload(Map<String, dynamic>.from(data)),
+          );
           _messageController.add(msg);
         } catch (e) {
           // ignore: avoid_print

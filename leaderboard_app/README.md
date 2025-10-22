@@ -1,4 +1,4 @@
-# leaderboard_app
+# leeterboard
 
 Flutter application with backend integration using `dio` + `retrofit` for typed HTTP APIs.
 
@@ -21,8 +21,8 @@ dart run build_runner build --delete-conflicting-outputs
 ### Using the REST client
 
 ```dart
-import 'package:leaderboard_app/services/core/dio_provider.dart';
-import 'package:leaderboard_app/services/core/rest_client.dart';
+import 'package:leeterboard/services/core/dio_provider.dart';
+import 'package:leeterboard/services/core/rest_client.dart';
 
 final dio = await DioProvider.getInstance();
 final api = RestClient(dio);

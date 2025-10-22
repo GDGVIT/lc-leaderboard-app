@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:leaderboard_app/models/dashboard_models.dart';
+import 'package:leeterboard/models/dashboard_models.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class LeetCodeDailyCard extends StatelessWidget {
@@ -29,7 +29,9 @@ class LeetCodeDailyCard extends StatelessWidget {
                   children: [
                     Expanded(
                       child: Padding(
-                        padding: const EdgeInsets.only(top: 4), // nudge text downward
+                        padding: const EdgeInsets.only(
+                          top: 4,
+                        ), // nudge text downward
                         child: Text(
                           dq.questionTitle,
                           style: const TextStyle(
@@ -63,13 +65,19 @@ class LeetCodeDailyCard extends StatelessWidget {
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8),
                       ),
-                      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 14),
+                      padding: const EdgeInsets.symmetric(
+                        vertical: 12,
+                        horizontal: 14,
+                      ),
                     ),
                     onPressed: dq.questionLink.isEmpty
                         ? null
                         : () async {
                             final url = Uri.parse(dq.questionLink);
-                            if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
+                            if (!await launchUrl(
+                              url,
+                              mode: LaunchMode.externalApplication,
+                            )) {
                               // ignore: avoid_print
                               print('Could not launch $url');
                             }
@@ -78,7 +86,10 @@ class LeetCodeDailyCard extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.center,
                       mainAxisSize: MainAxisSize.min,
                       children: const [
-                        Text('Go to Question', style: TextStyle(fontWeight: FontWeight.w600)),
+                        Text(
+                          'Go to Question',
+                          style: TextStyle(fontWeight: FontWeight.w600),
+                        ),
                         SizedBox(width: 6),
                         Icon(Icons.north_east, size: 18, color: Colors.black),
                       ],
@@ -101,9 +112,11 @@ class _DifficultyPill extends StatelessWidget {
     final Color bg = diff == 'easy'
         ? const Color(0xFF6BC864)
         : diff == 'medium'
-            ? const Color(0xFFFFC44E)
-            : const Color(0xFFFF2727);
-    final label = raw.isEmpty ? raw : raw[0].toUpperCase() + raw.substring(1).toLowerCase();
+        ? const Color(0xFFFFC44E)
+        : const Color(0xFFFF2727);
+    final label = raw.isEmpty
+        ? raw
+        : raw[0].toUpperCase() + raw.substring(1).toLowerCase();
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
       decoration: BoxDecoration(
@@ -112,7 +125,11 @@ class _DifficultyPill extends StatelessWidget {
       ),
       child: Text(
         label,
-        style: const TextStyle(color: Colors.black, fontSize: 12, fontWeight: FontWeight.w500),
+        style: const TextStyle(
+          color: Colors.black,
+          fontSize: 12,
+          fontWeight: FontWeight.w500,
+        ),
       ),
     );
   }

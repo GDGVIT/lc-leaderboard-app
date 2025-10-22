@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
-// import 'package:leaderboard_app/dashboard-components/compact_calendar.dart'; // removed widget
-import 'package:leaderboard_app/dashboard-components/leaderboard_table.dart';
-import 'package:leaderboard_app/dashboard-components/problem_table.dart';
-import 'package:leaderboard_app/dashboard-components/daily_activity.dart';
-// import 'package:leaderboard_app/dashboard-components/week_view.dart'; // removed widget
-// import 'package:leaderboard_app/dashboard-components/weekly_stats.dart'; // removed widget
-import 'package:leaderboard_app/provider/user_provider.dart';
+// import 'package:leeterboard/dashboard-components/compact_calendar.dart'; // removed widget
+import 'package:leeterboard/dashboard-components/leaderboard_table.dart';
+import 'package:leeterboard/dashboard-components/problem_table.dart';
+import 'package:leeterboard/dashboard-components/daily_activity.dart';
+// import 'package:leeterboard/dashboard-components/week_view.dart'; // removed widget
+// import 'package:leeterboard/dashboard-components/weekly_stats.dart'; // removed widget
+import 'package:leeterboard/provider/user_provider.dart';
 // models via provider components
-// import 'package:leaderboard_app/models/dashboard_models.dart';
-import 'package:leaderboard_app/services/user/user_service.dart';
-import 'package:leaderboard_app/provider/dashboard_provider.dart';
+// import 'package:leeterboard/models/dashboard_models.dart';
+import 'package:leeterboard/services/user/user_service.dart';
+import 'package:leeterboard/provider/dashboard_provider.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
@@ -123,36 +123,44 @@ class _DashboardPageState extends State<DashboardPage> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                            Consumer<DashboardProvider>(
-                              builder: (_, dp, __) => dp.loadingDaily
-                                  ? _loadingCard(height: 90)
-                                  : LeetCodeDailyCard(daily: dp.daily),
-                            ),
-                            const SizedBox(height: 10),
-                            Consumer<DashboardProvider>(
-                              builder: (_, dp, __) => dp.loadingLeaders
-                                  ? _loadingCard(height: 180)
-                                  : LeaderboardTable(users: dp.leaderboard),
-                            ),
-                            const SizedBox(height: 10),
-                            Consumer<DashboardProvider>(
-                              builder: (_, dp, __) {
-                                if (dp.loadingSubs) return _loadingCard(height: 180);
-                                if (!dp.isVerified) {
-                                  return _verifyCard(context);
-                                }
-                                if (dp.errorSubs != null) {
-                                  return _errorCard(dp.errorSubs!);
-                                }
-                                return ProblemTable(submissions: dp.submissions);
-                              },
-                            ),
-                            const SizedBox(height: 10),
-                            // Removed WeeklyStats and CompactCalendar per request
-                            if (_error != null) ...[
+                              Consumer<DashboardProvider>(
+                                builder: (_, dp, __) => dp.loadingDaily
+                                    ? _loadingCard(height: 90)
+                                    : LeetCodeDailyCard(daily: dp.daily),
+                              ),
                               const SizedBox(height: 10),
-                              Text(_error!, style: const TextStyle(color: Colors.redAccent)),
-                            ],
+                              Consumer<DashboardProvider>(
+                                builder: (_, dp, __) => dp.loadingLeaders
+                                    ? _loadingCard(height: 180)
+                                    : LeaderboardTable(users: dp.leaderboard),
+                              ),
+                              const SizedBox(height: 10),
+                              Consumer<DashboardProvider>(
+                                builder: (_, dp, __) {
+                                  if (dp.loadingSubs)
+                                    return _loadingCard(height: 180);
+                                  if (!dp.isVerified) {
+                                    return _verifyCard(context);
+                                  }
+                                  if (dp.errorSubs != null) {
+                                    return _errorCard(dp.errorSubs!);
+                                  }
+                                  return ProblemTable(
+                                    submissions: dp.submissions,
+                                  );
+                                },
+                              ),
+                              const SizedBox(height: 10),
+                              // Removed WeeklyStats and CompactCalendar per request
+                              if (_error != null) ...[
+                                const SizedBox(height: 10),
+                                Text(
+                                  _error!,
+                                  style: const TextStyle(
+                                    color: Colors.redAccent,
+                                  ),
+                                ),
+                              ],
                             ],
                           ),
                         ),
@@ -259,7 +267,11 @@ class _DashboardPageState extends State<DashboardPage> {
               alignment: Alignment.center,
               child: const Text(
                 '!',
-                style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
             const SizedBox(width: 10),
@@ -290,10 +302,19 @@ class _DashboardPageState extends State<DashboardPage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Text('Unable to load submissions',
-                    style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold, fontSize: 13)),
+                const Text(
+                  'Unable to load submissions',
+                  style: TextStyle(
+                    color: Colors.redAccent,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 13,
+                  ),
+                ),
                 const SizedBox(height: 6),
-                Text(message, style: const TextStyle(color: Colors.white70, fontSize: 12)),
+                Text(
+                  message,
+                  style: const TextStyle(color: Colors.white70, fontSize: 12),
+                ),
               ],
             ),
           ),

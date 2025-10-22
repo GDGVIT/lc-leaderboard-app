@@ -1,8 +1,8 @@
 import 'dart:async';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart' show kIsWeb; // narrow imports
-import 'package:leaderboard_app/config/api_config.dart';
-import 'package:leaderboard_app/services/core/token_manager.dart';
+import 'package:leeterboard/config/api_config.dart';
+import 'package:leeterboard/services/core/token_manager.dart';
 
 /// Provides a configured singleton Dio instance with auth header + logging.
 class DioProvider {
@@ -11,7 +11,7 @@ class DioProvider {
 
   static Future<Dio> getInstance({String? baseUrl}) async {
     if (_dio != null) return _dio!;
-  // Note: Token values are retrieved on-demand via TokenManager.
+    // Note: Token values are retrieved on-demand via TokenManager.
     final dio = Dio(
       BaseOptions(
         baseUrl: baseUrl ?? ApiConfig.baseUrl,
@@ -21,66 +21,74 @@ class DioProvider {
       ),
     );
 
-    dio.interceptors.add(InterceptorsWrapper(onRequest: (options, handler) async {
-      // Skip auth header for explicit opt-out
-      if (options.extra['skipAuth'] == true) {
-        handler.next(options);
-        return;
-      }
-      final token = await TokenManager.getAccessToken();
-      if (token != null && token.isNotEmpty) {
-        options.headers['Authorization'] = 'Bearer $token';
-      }
-      handler.next(options);
-    }, onError: (e, handler) async {
-      // Simple retry for idempotent GETs on network issues
-      if (_shouldRetry(e)) {
-        _retry(dio, e.requestOptions).then(handler.resolve).catchError((_) => handler.next(e));
-        return;
-      }
-
-      // Refresh on 401 Unauthorized, excluding auth endpoints to avoid loops
-      final status = e.response?.statusCode;
-      final path = e.requestOptions.path;
-      final isAuthPath = path.contains('/auth/login') || path.contains('/auth/signup') || path.contains('/auth/refresh');
-      final alreadyRetried = e.requestOptions.extra['retried'] == true;
-
-      if (status == 401 && !isAuthPath && !alreadyRetried) {
-        try {
-          final newToken = await _refreshTokenIfNeeded(dio);
-          if (newToken != null && newToken.isNotEmpty) {
-            // Clone and retry original request with new token
-            final opts = Options(
-              method: e.requestOptions.method,
-              headers: {
-                ...e.requestOptions.headers,
-                'Authorization': 'Bearer $newToken',
-              },
-              responseType: e.requestOptions.responseType,
-              contentType: e.requestOptions.contentType,
-              sendTimeout: e.requestOptions.sendTimeout,
-              receiveTimeout: e.requestOptions.receiveTimeout,
-              extra: {
-                ...e.requestOptions.extra,
-                'retried': true,
-              },
-            );
-            final rerun = await dio.request<dynamic>(
-              e.requestOptions.path,
-              data: e.requestOptions.data,
-              queryParameters: e.requestOptions.queryParameters,
-              options: opts,
-            );
-            handler.resolve(rerun);
+    dio.interceptors.add(
+      InterceptorsWrapper(
+        onRequest: (options, handler) async {
+          // Skip auth header for explicit opt-out
+          if (options.extra['skipAuth'] == true) {
+            handler.next(options);
             return;
           }
-        } catch (_) {
-          // fall through to next
-        }
-      }
+          final token = await TokenManager.getAccessToken();
+          if (token != null && token.isNotEmpty) {
+            options.headers['Authorization'] = 'Bearer $token';
+          }
+          handler.next(options);
+        },
+        onError: (e, handler) async {
+          // Simple retry for idempotent GETs on network issues
+          if (_shouldRetry(e)) {
+            _retry(
+              dio,
+              e.requestOptions,
+            ).then(handler.resolve).catchError((_) => handler.next(e));
+            return;
+          }
 
-      handler.next(e);
-    }));
+          // Refresh on 401 Unauthorized, excluding auth endpoints to avoid loops
+          final status = e.response?.statusCode;
+          final path = e.requestOptions.path;
+          final isAuthPath =
+              path.contains('/auth/login') ||
+              path.contains('/auth/signup') ||
+              path.contains('/auth/refresh');
+          final alreadyRetried = e.requestOptions.extra['retried'] == true;
+
+          if (status == 401 && !isAuthPath && !alreadyRetried) {
+            try {
+              final newToken = await _refreshTokenIfNeeded(dio);
+              if (newToken != null && newToken.isNotEmpty) {
+                // Clone and retry original request with new token
+                final opts = Options(
+                  method: e.requestOptions.method,
+                  headers: {
+                    ...e.requestOptions.headers,
+                    'Authorization': 'Bearer $newToken',
+                  },
+                  responseType: e.requestOptions.responseType,
+                  contentType: e.requestOptions.contentType,
+                  sendTimeout: e.requestOptions.sendTimeout,
+                  receiveTimeout: e.requestOptions.receiveTimeout,
+                  extra: {...e.requestOptions.extra, 'retried': true},
+                );
+                final rerun = await dio.request<dynamic>(
+                  e.requestOptions.path,
+                  data: e.requestOptions.data,
+                  queryParameters: e.requestOptions.queryParameters,
+                  options: opts,
+                );
+                handler.resolve(rerun);
+                return;
+              }
+            } catch (_) {
+              // fall through to next
+            }
+          }
+
+          handler.next(e);
+        },
+      ),
+    );
 
     // Basic log interceptor (custom to avoid extra dependency)
     dio.interceptors.add(_LogInterceptor());
@@ -91,13 +99,18 @@ class DioProvider {
 
   static bool _shouldRetry(DioException e) {
     final isGet = e.requestOptions.method == 'GET';
-    final isNet = e.type == DioExceptionType.connectionError || e.type == DioExceptionType.receiveTimeout;
+    final isNet =
+        e.type == DioExceptionType.connectionError ||
+        e.type == DioExceptionType.receiveTimeout;
     if (!(isGet && isNet)) return false;
     final attempts = (e.requestOptions.extra['retryCount'] as int?) ?? 0;
     return attempts < 1; // retry at most once
   }
 
-  static Future<Response<dynamic>> _retry(Dio dio, RequestOptions requestOptions) async {
+  static Future<Response<dynamic>> _retry(
+    Dio dio,
+    RequestOptions requestOptions,
+  ) async {
     final attempts = (requestOptions.extra['retryCount'] as int?) ?? 0;
     // brief backoff before retrying
     await Future<void>.delayed(Duration(milliseconds: 500 * (attempts + 1)));
@@ -108,10 +121,7 @@ class DioProvider {
       contentType: requestOptions.contentType,
       sendTimeout: requestOptions.sendTimeout,
       receiveTimeout: requestOptions.receiveTimeout,
-      extra: {
-        ...requestOptions.extra,
-        'retryCount': attempts + 1,
-      },
+      extra: {...requestOptions.extra, 'retryCount': attempts + 1},
     );
     return dio.request<dynamic>(
       requestOptions.path,
@@ -165,7 +175,10 @@ class DioProvider {
     Response res;
     try {
       if (refreshToken != null && refreshToken.isNotEmpty) {
-        res = await refreshDio.post('/auth/refresh', data: {'refreshToken': refreshToken});
+        res = await refreshDio.post(
+          '/auth/refresh',
+          data: {'refreshToken': refreshToken},
+        );
       } else {
         // Some backends use HttpOnly cookie refresh; attempt without body
         res = await refreshDio.post('/auth/refresh');
@@ -180,8 +193,10 @@ class DioProvider {
         ? res.data as Map<String, dynamic>
         : <String, dynamic>{};
     final payload = (data['data'] ?? data) as Map<String, dynamic>;
-    final newAccess = (payload['token'] ?? payload['accessToken'] ?? '') as String;
-    final newRefresh = (payload['refreshToken'] ?? payload['refresh_token'] ?? '') as String;
+    final newAccess =
+        (payload['token'] ?? payload['accessToken'] ?? '') as String;
+    final newRefresh =
+        (payload['refreshToken'] ?? payload['refresh_token'] ?? '') as String;
 
     if (newAccess.isEmpty) {
       await TokenManager.clearTokens();
@@ -189,7 +204,10 @@ class DioProvider {
     }
 
     // Persist the new tokens
-    await TokenManager.saveTokens(accessToken: newAccess, refreshToken: newRefresh.isEmpty ? null : newRefresh);
+    await TokenManager.saveTokens(
+      accessToken: newAccess,
+      refreshToken: newRefresh.isEmpty ? null : newRefresh,
+    );
     return newAccess;
   }
 }
@@ -207,13 +225,17 @@ class _LogInterceptor extends Interceptor {
 
   @override
   void onResponse(Response response, ResponseInterceptorHandler handler) {
-    debugPrint('[HTTP] <= ${response.statusCode} ${response.requestOptions.path}');
+    debugPrint(
+      '[HTTP] <= ${response.statusCode} ${response.requestOptions.path}',
+    );
     handler.next(response);
   }
 
   @override
   void onError(DioException err, ErrorInterceptorHandler handler) {
-    debugPrint('[HTTP] !! ${err.type} ${err.message} path=${err.requestOptions.path}');
+    debugPrint(
+      '[HTTP] !! ${err.type} ${err.message} path=${err.requestOptions.path}',
+    );
     handler.next(err);
   }
 }

@@ -1,5 +1,5 @@
 import 'package:dio/dio.dart';
-import 'package:leaderboard_app/services/core/api_client.dart';
+import 'package:leeterboard/services/core/api_client.dart';
 
 class HealthService {
   final Dio _dio;

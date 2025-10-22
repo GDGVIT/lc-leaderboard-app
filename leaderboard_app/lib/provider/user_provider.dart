@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:leaderboard_app/models/auth_models.dart';
-import 'package:leaderboard_app/services/user/user_service.dart';
+import 'package:leeterboard/models/auth_models.dart';
+import 'package:leeterboard/services/user/user_service.dart';
 
 class UserProvider extends ChangeNotifier {
   User? _user;
@@ -27,7 +27,11 @@ class UserProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  void updateUser({required String name, required String email, required int streak}) {
+  void updateUser({
+    required String name,
+    required String email,
+    required int streak,
+  }) {
     _user = User(
       id: _user?.id ?? '',
       username: name,

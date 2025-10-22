@@ -1,7 +1,7 @@
 import 'package:dio/dio.dart';
-import 'package:leaderboard_app/models/dashboard_models.dart';
-import 'package:leaderboard_app/models/submissions_models.dart';
-import 'package:leaderboard_app/services/core/api_client.dart';
+import 'package:leeterboard/models/dashboard_models.dart';
+import 'package:leeterboard/models/submissions_models.dart';
+import 'package:leeterboard/services/core/api_client.dart';
 
 class DashboardService {
   final Dio _dio;
@@ -25,42 +25,48 @@ class DashboardService {
     } catch (_) {
       // Fallback to previous loose parsing strategy
       final data = (body['data'] ?? body) as Map<String, dynamic>;
-      final raw = (data['submissions'] ?? data['items'] ?? data['results'] ?? data) as dynamic;
+      final raw =
+          (data['submissions'] ?? data['items'] ?? data['results'] ?? data)
+              as dynamic;
       final list = raw is List
           ? raw.cast<Map<String, dynamic>>()
           : (raw is Map<String, dynamic> && raw['submissions'] is List)
-              ? (raw['submissions'] as List).cast<Map<String, dynamic>>()
-              : <Map<String, dynamic>>[];
+          ? (raw['submissions'] as List).cast<Map<String, dynamic>>()
+          : <Map<String, dynamic>>[];
       return list.map(SubmissionItem.fromJson).toList();
     }
   }
 
   Future<DailyQuestion?> getDailyQuestion() async {
-  final res = await _dio.get(
-    '/dashboard/daily',
-    options: Options(receiveTimeout: const Duration(seconds: 60)),
-  );
-  final body = res.data as Map<String, dynamic>;
-  final data = (body['data'] ?? body) as Map<String, dynamic>;
-  final dq = (data['dailyQuestion'] ?? data['daily'] ?? data['question'] ?? data) as dynamic;
-  if (dq is Map<String, dynamic>) return DailyQuestion.fromJson(dq);
-  return null;
+    final res = await _dio.get(
+      '/dashboard/daily',
+      options: Options(receiveTimeout: const Duration(seconds: 60)),
+    );
+    final body = res.data as Map<String, dynamic>;
+    final data = (body['data'] ?? body) as Map<String, dynamic>;
+    final dq =
+        (data['dailyQuestion'] ?? data['daily'] ?? data['question'] ?? data)
+            as dynamic;
+    if (dq is Map<String, dynamic>) return DailyQuestion.fromJson(dq);
+    return null;
   }
 
   Future<List<TopUser>> getTopUsers() async {
-  final res = await _dio.get(
-    '/dashboard/leaderboard',
-    options: Options(receiveTimeout: const Duration(seconds: 60)),
-  );
-  final body = res.data as Map<String, dynamic>;
-  final data = (body['data'] ?? body) as Map<String, dynamic>;
-  final raw = (data['leaderboard'] ?? data['users'] ?? data['results'] ?? data) as dynamic;
-  final list = raw is List
-    ? raw.cast<Map<String, dynamic>>()
-    : (raw is Map<String, dynamic> && raw['leaderboard'] is List)
-      ? (raw['leaderboard'] as List).cast<Map<String, dynamic>>()
-      : <Map<String, dynamic>>[];
-  return list.map(TopUser.fromJson).toList();
+    final res = await _dio.get(
+      '/dashboard/leaderboard',
+      options: Options(receiveTimeout: const Duration(seconds: 60)),
+    );
+    final body = res.data as Map<String, dynamic>;
+    final data = (body['data'] ?? body) as Map<String, dynamic>;
+    final raw =
+        (data['leaderboard'] ?? data['users'] ?? data['results'] ?? data)
+            as dynamic;
+    final list = raw is List
+        ? raw.cast<Map<String, dynamic>>()
+        : (raw is Map<String, dynamic> && raw['leaderboard'] is List)
+        ? (raw['leaderboard'] as List).cast<Map<String, dynamic>>()
+        : <Map<String, dynamic>>[];
+    return list.map(TopUser.fromJson).toList();
   }
 
   // New: explicit getLeaderboard support. Tries /leaderboard first, falls back to /dashboard/leaderboard.

@@ -1,7 +1,7 @@
 import 'package:dio/dio.dart';
-import 'package:leaderboard_app/models/auth_models.dart';
-import 'package:leaderboard_app/models/dashboard_models.dart';
-import 'package:leaderboard_app/services/core/api_client.dart';
+import 'package:leeterboard/models/auth_models.dart';
+import 'package:leeterboard/models/dashboard_models.dart';
+import 'package:leeterboard/services/core/api_client.dart';
 
 class UserService {
   final Dio _dio;

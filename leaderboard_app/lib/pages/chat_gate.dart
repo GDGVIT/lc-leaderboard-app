@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:leaderboard_app/provider/group_membership_provider.dart';
-import 'package:leaderboard_app/pages/chat_page.dart';
-import 'package:leaderboard_app/pages/groupinfo_page.dart';
+import 'package:leeterboard/provider/group_membership_provider.dart';
+import 'package:leeterboard/pages/chat_page.dart';
+import 'package:leeterboard/pages/groupinfo_page.dart';
 
 /// Decides whether to show chat directly or group info depending on membership.
 class ChatGate extends StatefulWidget {
@@ -48,9 +48,15 @@ class _ChatGateState extends State<ChatGate> {
           ),
         );
       case GroupMembershipStatus.member:
-        return ChatPage(groupId: widget.groupId, groupName: widget.groupName ?? membership.group?.name ?? 'Group');
+        return ChatPage(
+          groupId: widget.groupId,
+          groupName: widget.groupName ?? membership.group?.name ?? 'Group',
+        );
       case GroupMembershipStatus.notMember:
-        return GroupInfoPage(groupId: widget.groupId, initialName: widget.groupName ?? membership.group?.name);
+        return GroupInfoPage(
+          groupId: widget.groupId,
+          initialName: widget.groupName ?? membership.group?.name,
+        );
     }
   }
 }

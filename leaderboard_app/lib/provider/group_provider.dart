@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:leaderboard_app/models/group_models.dart';
-import 'package:leaderboard_app/services/groups/group_service.dart';
+import 'package:leeterboard/models/group_models.dart';
+import 'package:leeterboard/services/groups/group_service.dart';
 
 class GroupProvider extends ChangeNotifier {
   final GroupService service;
@@ -28,9 +28,19 @@ class GroupProvider extends ChangeNotifier {
     }
   }
 
-  Future<Group?> createGroup({required String name, String? description, bool isPrivate = false, int? maxMembers}) async {
+  Future<Group?> createGroup({
+    required String name,
+    String? description,
+    bool isPrivate = false,
+    int? maxMembers,
+  }) async {
     try {
-      final g = await service.createGroup(name: name, description: description, isPrivate: isPrivate, maxMembers: maxMembers);
+      final g = await service.createGroup(
+        name: name,
+        description: description,
+        isPrivate: isPrivate,
+        maxMembers: maxMembers,
+      );
       _myGroups = [..._myGroups, g];
       notifyListeners();
       return g;

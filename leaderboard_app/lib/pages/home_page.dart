@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:leaderboard_app/pages/dashboard_page.dart';
-import 'package:leaderboard_app/pages/chatlists_page.dart';
-import 'package:leaderboard_app/pages/settings_page.dart';
+import 'package:leeterboard/pages/dashboard_page.dart';
+import 'package:leeterboard/pages/chatlists_page.dart';
+import 'package:leeterboard/pages/settings_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -14,10 +14,10 @@ class _HomePageState extends State<HomePage> {
   int _selectedIndex = 0;
 
   List<Widget> get _pages => [
-        const DashboardPage(),
-        ChatlistsPage(),
-        SettingsPage(),
-      ];
+    const DashboardPage(),
+    ChatlistsPage(),
+    SettingsPage(),
+  ];
 
   @override
   Widget build(BuildContext context) {
@@ -28,12 +28,12 @@ class _HomePageState extends State<HomePage> {
         data: Theme.of(context).copyWith(
           canvasColor: Colors.grey[900],
           primaryColor: Colors.amber,
-          textTheme: Theme.of(context).textTheme.copyWith(
-                bodySmall: const TextStyle(color: Colors.white),
-              ),
+          textTheme: Theme.of(
+            context,
+          ).textTheme.copyWith(bodySmall: const TextStyle(color: Colors.white)),
         ),
         child: BottomNavigationBar(
-            selectedItemColor: Color(0xFFF6C155),
+          selectedItemColor: Color(0xFFF6C155),
           unselectedItemColor: Colors.white,
           showSelectedLabels: false,
           showUnselectedLabels: false,

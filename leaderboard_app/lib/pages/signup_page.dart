@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
 import 'package:go_router/go_router.dart';
-import 'package:leaderboard_app/services/auth/auth_service.dart';
-import 'package:leaderboard_app/provider/user_provider.dart';
-import 'package:leaderboard_app/services/user/user_service.dart';
+import 'package:leeterboard/services/auth/auth_service.dart';
+import 'package:leeterboard/provider/user_provider.dart';
+import 'package:leeterboard/services/user/user_service.dart';
 import 'package:provider/provider.dart';
-import 'package:leaderboard_app/services/core/error_utils.dart';
+import 'package:leeterboard/services/core/error_utils.dart';
 
 class SignUpPage extends StatefulWidget {
   const SignUpPage({super.key});
@@ -128,7 +128,10 @@ class _SignUpPageState extends State<SignUpPage> {
                     if (_error != null)
                       Padding(
                         padding: const EdgeInsets.only(bottom: 8.0),
-                        child: Text(_error!, style: const TextStyle(color: Colors.redAccent)),
+                        child: Text(
+                          _error!,
+                          style: const TextStyle(color: Colors.redAccent),
+                        ),
                       ),
                     SizedBox(
                       width: double.infinity,
@@ -145,7 +148,10 @@ class _SignUpPageState extends State<SignUpPage> {
                             ? const SizedBox(
                                 width: 18,
                                 height: 18,
-                                child: CircularProgressIndicator(strokeWidth: 2, color: Colors.black),
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: Colors.black,
+                                ),
                               )
                             : const Text(
                                 'Get Started',
@@ -225,13 +231,17 @@ class _SignUpPageState extends State<SignUpPage> {
         password: _passwordCtrl.text,
       );
       context.read<UserProvider>().updateUser(
-            name: res.user.username,
-            email: res.user.email ?? '',
-            streak: res.user.streak,
-          );
-  // Check verification status
-  final profile = await authService.getUserProfile();
-  try { await context.read<UserProvider>().fetchProfile(context.read<UserService>()); } catch (_) {}
+        name: res.user.username,
+        email: res.user.email ?? '',
+        streak: res.user.streak,
+      );
+      // Check verification status
+      final profile = await authService.getUserProfile();
+      try {
+        await context.read<UserProvider>().fetchProfile(
+          context.read<UserService>(),
+        );
+      } catch (_) {}
       if (!mounted) return;
       if (!profile.leetcodeVerified) {
         context.go('/verify');

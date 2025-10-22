@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:leaderboard_app/models/chat_message.dart';
-import 'package:leaderboard_app/services/chat/chat_service.dart';
+import 'package:leeterboard/models/chat_message.dart';
+import 'package:leeterboard/services/chat/chat_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:provider/provider.dart';
 import 'user_provider.dart';
@@ -11,7 +11,8 @@ class ChatProvider extends ChangeNotifier {
   final Map<String, List<Map<String, dynamic>>> _groupMessages = {};
   final Map<String, bool> _groupAttachmentVisibility = {};
   final Set<String> _joinedGroups = {};
-  final Map<String, int> _groupCurrentPage = {}; // page loaded so far (starts at 1)
+  final Map<String, int> _groupCurrentPage =
+      {}; // page loaded so far (starts at 1)
   final Map<String, bool> _groupHasMore = {}; // whether more pages available
   bool isLoadingMore(String groupId) => _loadingMoreGroups.contains(groupId);
   final Set<String> _loadingMoreGroups = {};
@@ -32,19 +33,23 @@ class ChatProvider extends ChangeNotifier {
   String get currentUserID => _currentUserId ?? '';
   String get currentUsername => _currentUsername ?? '';
 
-  List<Map<String, dynamic>> getMessages(String groupId) => _groupMessages[groupId] ?? const [];
-  bool getAttachmentOptionsVisibility(String groupId) => _groupAttachmentVisibility[groupId] ?? false;
+  List<Map<String, dynamic>> getMessages(String groupId) =>
+      _groupMessages[groupId] ?? const [];
+  bool getAttachmentOptionsVisibility(String groupId) =>
+      _groupAttachmentVisibility[groupId] ?? false;
 
   Future<void> initIfNeeded([BuildContext? context]) async {
     if (_currentUserId != null) return;
     final prefs = await SharedPreferences.getInstance();
     _currentUserId = prefs.getString('userId');
     _currentUsername = prefs.getString('username') ?? prefs.getString('name');
-    if ((_currentUserId == null || _currentUsername == null) && context != null) {
+    if ((_currentUserId == null || _currentUsername == null) &&
+        context != null) {
       try {
         final userProv = context.read<UserProvider>();
         if (_currentUserId == null) _currentUserId = userProv.user?.id;
-        if (_currentUsername == null) _currentUsername = userProv.user?.username;
+        if (_currentUsername == null)
+          _currentUsername = userProv.user?.username;
       } catch (_) {}
     }
     _currentUserId ??= 'me';
@@ -63,7 +68,9 @@ class ChatProvider extends ChangeNotifier {
       await ChatService.instance.ensureConnected(authToken: token);
       _connected = true;
       _connError = null;
-      _sub ??= ChatService.instance.messagesStream.listen(_handleIncomingMessage);
+      _sub ??= ChatService.instance.messagesStream.listen(
+        _handleIncomingMessage,
+      );
     } catch (e) {
       _connError = e.toString();
     } finally {
@@ -127,14 +134,18 @@ class ChatProvider extends ChangeNotifier {
     // Ensure group joined (lightweight: if not joined, just emit join now)
     if (!_joinedGroups.contains(groupId)) {
       // ignore: avoid_print
-      print('[CHAT][SEND] Group $groupId not joined yet. Joining via socket (no history fetch).');
+      print(
+        '[CHAT][SEND] Group $groupId not joined yet. Joining via socket (no history fetch).',
+      );
       _joinedGroups.add(groupId);
       _groupMessages.putIfAbsent(groupId, () => []);
       ChatService.instance.joinGroup(groupId);
     }
     final trimmed = raw.trim();
     // ignore: avoid_print
-    print('[CHAT][SEND] Attempt send group=$groupId len=${trimmed.length} user=$currentUserID');
+    print(
+      '[CHAT][SEND] Attempt send group=$groupId len=${trimmed.length} user=$currentUserID',
+    );
     final ok = await ChatService.instance.sendMessage(
       groupId,
       trimmed,
@@ -167,13 +178,18 @@ class ChatProvider extends ChangeNotifier {
     _loadingMoreGroups.add(groupId);
     notifyListeners();
     try {
-      final history = await ChatService.instance.fetchHistory(groupId, page: next);
+      final history = await ChatService.instance.fetchHistory(
+        groupId,
+        page: next,
+      );
       if (history.isEmpty) {
         _groupHasMore[groupId] = false;
       } else {
         final list = _groupMessages[groupId] ??= [];
         final existingIds = list.map((e) => e['id']).toSet();
-        final newOnes = history.where((m) => !existingIds.contains(m.id)).map(_toMap);
+        final newOnes = history
+            .where((m) => !existingIds.contains(m.id))
+            .map(_toMap);
         list.insertAll(0, newOnes); // prepend older messages
         _groupCurrentPage[groupId] = next;
         _groupHasMore[groupId] = history.length >= 50;
@@ -199,10 +215,13 @@ class ChatProvider extends ChangeNotifier {
   }
 
   Map<String, dynamic> _toMap(ChatMessage m) {
-    final bool isMe = (m.senderId.isNotEmpty && m.senderId == currentUserID) ||
+    final bool isMe =
+        (m.senderId.isNotEmpty && m.senderId == currentUserID) ||
         (m.senderName.toLowerCase() == currentUsername.toLowerCase());
     // ignore: avoid_print
-    print('[CHAT] map message id=${m.id} senderId=${m.senderId} senderName=${m.senderName} isMe=$isMe currentUser=$currentUserID/$currentUsername');
+    print(
+      '[CHAT] map message id=${m.id} senderId=${m.senderId} senderName=${m.senderName} isMe=$isMe currentUser=$currentUserID/$currentUsername',
+    );
     return {
       'id': m.id,
       'groupId': m.groupId,
@@ -217,7 +236,8 @@ class ChatProvider extends ChangeNotifier {
   }
 
   void toggleAttachmentOptions(String groupId) {
-    _groupAttachmentVisibility[groupId] = !(_groupAttachmentVisibility[groupId] ?? false);
+    _groupAttachmentVisibility[groupId] =
+        !(_groupAttachmentVisibility[groupId] ?? false);
     notifyListeners();
   }
 
@@ -245,7 +265,9 @@ class ChatProvider extends ChangeNotifier {
     _connError = null;
     // Disconnect socket so that next authenticated session re-establishes
     // a new connection with the correct token / identity.
-    try { ChatService.instance.disconnect(); } catch (_) {}
+    try {
+      ChatService.instance.disconnect();
+    } catch (_) {}
     notifyListeners();
   }
 

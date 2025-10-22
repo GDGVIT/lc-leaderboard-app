@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:leaderboard_app/services/groups/group_service.dart';
+import 'package:leeterboard/services/groups/group_service.dart';
 
 class ChatListProvider extends ChangeNotifier {
   /// List of group chats
@@ -40,12 +40,21 @@ class ChatListProvider extends ChangeNotifier {
   }
 
   /// Load groups from backend (public groups) and merge with user's joined groups (including private)
-  Future<void> loadPublicGroups(GroupService service, {int page = 1, int limit = 10, String? search}) async {
+  Future<void> loadPublicGroups(
+    GroupService service, {
+    int page = 1,
+    int limit = 10,
+    String? search,
+  }) async {
     _isLoading = true;
     _error = null;
     notifyListeners();
     try {
-      final paged = await service.getAllGroups(page: page, limit: limit, search: search);
+      final paged = await service.getAllGroups(
+        page: page,
+        limit: limit,
+        search: search,
+      );
       final myGroups = await service.getMyGroups();
 
       // Map by id to merge (my groups take precedence for member list completeness / privacy visibility)
@@ -58,10 +67,11 @@ class ChatListProvider extends ChangeNotifier {
           'lastMessage': '',
           'time': '',
           'isPrivate': group.isPrivate,
-          'members': group.members.map((m) => {
-                'uid': m.userId,
-                'name': m.user?.username ?? m.userId,
-              }).toList(),
+          'members': group.members
+              .map(
+                (m) => {'uid': m.userId, 'name': m.user?.username ?? m.userId},
+              )
+              .toList(),
           'unread': false,
           'favourite': false,
           'isMember': isMember,
@@ -69,7 +79,10 @@ class ChatListProvider extends ChangeNotifier {
       }
 
       for (final g in paged.groups) {
-        addOrUpdate(g, isMember: false); // unknown membership until merged with myGroups
+        addOrUpdate(
+          g,
+          isMember: false,
+        ); // unknown membership until merged with myGroups
       }
       for (final g in myGroups) {
         addOrUpdate(g, isMember: true); // mark membership
@@ -85,23 +98,33 @@ class ChatListProvider extends ChangeNotifier {
   }
 
   /// Create a new group and add to list (optimistically inserts at top)
-  Future<Map<String, dynamic>?> createNewGroup(GroupService service, {required String name, String? description, bool isPrivate = false, int? maxMembers}) async {
+  Future<Map<String, dynamic>?> createNewGroup(
+    GroupService service, {
+    required String name,
+    String? description,
+    bool isPrivate = false,
+    int? maxMembers,
+  }) async {
     if (_isCreating) return null; // prevent duplicate taps
     _isCreating = true;
     _createError = null;
     notifyListeners();
     try {
-      final group = await service.createGroup(name: name, description: description, isPrivate: isPrivate, maxMembers: maxMembers);
+      final group = await service.createGroup(
+        name: name,
+        description: description,
+        isPrivate: isPrivate,
+        maxMembers: maxMembers,
+      );
       final map = {
         'groupId': group.id,
         'name': group.name,
         'lastMessage': '',
         'time': '',
         'isPrivate': group.isPrivate,
-        'members': group.members.map((m) => {
-              'uid': m.userId,
-              'name': m.user?.username ?? m.userId,
-            }).toList(),
+        'members': group.members
+            .map((m) => {'uid': m.userId, 'name': m.user?.username ?? m.userId})
+            .toList(),
         'unread': false,
         'favourite': false,
       };
@@ -118,7 +141,9 @@ class ChatListProvider extends ChangeNotifier {
 
   /// Mark a group as read
   void markGroupAsRead(String groupId) {
-    final index = _chatGroups.indexWhere((group) => group["groupId"] == groupId);
+    final index = _chatGroups.indexWhere(
+      (group) => group["groupId"] == groupId,
+    );
     if (index != -1) {
       _chatGroups[index]["unread"] = false;
       notifyListeners();
@@ -127,7 +152,9 @@ class ChatListProvider extends ChangeNotifier {
 
   /// Update last message for a group
   void updateLastMessage(String groupId, String message, String time) {
-    final index = _chatGroups.indexWhere((group) => group["groupId"] == groupId);
+    final index = _chatGroups.indexWhere(
+      (group) => group["groupId"] == groupId,
+    );
     if (index != -1) {
       _chatGroups[index]["lastMessage"] = message;
       _chatGroups[index]["time"] = time;
@@ -145,7 +172,11 @@ class ChatListProvider extends ChangeNotifier {
   }
 
   /// Update group metadata (e.g., after editing name / privacy)
-  void updateGroupMeta({required String groupId, String? name, bool? isPrivate}) {
+  void updateGroupMeta({
+    required String groupId,
+    String? name,
+    bool? isPrivate,
+  }) {
     final index = _chatGroups.indexWhere((g) => g['groupId'] == groupId);
     if (index == -1) return;
     bool changed = false;

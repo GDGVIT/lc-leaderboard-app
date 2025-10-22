@@ -1,23 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
-import 'package:leaderboard_app/provider/chatlists_provider.dart';
-import 'package:leaderboard_app/provider/chat_provider.dart';
-import 'package:leaderboard_app/provider/theme_provider.dart';
-import 'package:leaderboard_app/provider/user_provider.dart';
+import 'package:leeterboard/provider/chatlists_provider.dart';
+import 'package:leeterboard/provider/chat_provider.dart';
+import 'package:leeterboard/provider/theme_provider.dart';
+import 'package:leeterboard/provider/user_provider.dart';
 import 'package:provider/provider.dart';
-import 'package:leaderboard_app/router/app_router.dart';
-import 'package:leaderboard_app/services/auth/auth_service.dart';
-import 'package:leaderboard_app/services/dashboard/dashboard_service.dart';
-import 'package:leaderboard_app/services/leetcode/leetcode_service.dart';
-import 'package:leaderboard_app/services/groups/group_service.dart';
-import 'package:leaderboard_app/services/user/user_service.dart';
+import 'package:leeterboard/router/app_router.dart';
+import 'package:leeterboard/services/auth/auth_service.dart';
+import 'package:leeterboard/services/dashboard/dashboard_service.dart';
+import 'package:leeterboard/services/leetcode/leetcode_service.dart';
+import 'package:leeterboard/services/groups/group_service.dart';
+import 'package:leeterboard/services/user/user_service.dart';
 import 'package:go_router/go_router.dart';
-import 'package:leaderboard_app/provider/group_provider.dart';
-import 'package:leaderboard_app/provider/dashboard_provider.dart';
-import 'package:leaderboard_app/provider/group_membership_provider.dart';
+import 'package:leeterboard/provider/group_provider.dart';
+import 'package:leeterboard/provider/dashboard_provider.dart';
+import 'package:leeterboard/provider/group_membership_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:leaderboard_app/provider/connectivity_provider.dart';
-import 'package:leaderboard_app/pages/no_internet_page.dart';
+import 'package:leeterboard/provider/connectivity_provider.dart';
+import 'package:leeterboard/pages/no_internet_page.dart';
 
 void main() {
   final widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
@@ -55,15 +55,22 @@ class Bootstrap extends StatelessWidget {
             ChangeNotifierProvider(create: (_) => UserProvider()),
             ChangeNotifierProvider(create: (_) => ChatProvider()),
             ChangeNotifierProvider(create: (_) => ConnectivityProvider()),
-            ChangeNotifierProvider(create: (ctx) => GroupProvider(groupService)),
-            ChangeNotifierProvider(create: (ctx) => DashboardProvider(
-                  service: dashboardService,
-                  userProvider: ctx.read<UserProvider>(),
-                  userService: userService,
-                )),
             ChangeNotifierProvider(
-                create: (ctx) => GroupMembershipProvider(
-                    service: groupService, userProvider: ctx.read<UserProvider>())),
+              create: (ctx) => GroupProvider(groupService),
+            ),
+            ChangeNotifierProvider(
+              create: (ctx) => DashboardProvider(
+                service: dashboardService,
+                userProvider: ctx.read<UserProvider>(),
+                userService: userService,
+              ),
+            ),
+            ChangeNotifierProvider(
+              create: (ctx) => GroupMembershipProvider(
+                service: groupService,
+                userProvider: ctx.read<UserProvider>(),
+              ),
+            ),
             Provider.value(value: authService),
             Provider.value(value: dashboardService),
             Provider.value(value: leetCodeService),

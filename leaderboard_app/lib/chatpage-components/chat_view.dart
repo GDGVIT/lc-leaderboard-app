@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:leaderboard_app/pages/groupinfo_page.dart';
+import 'package:leeterboard/pages/groupinfo_page.dart';
 import 'package:provider/provider.dart';
 import '../provider/chat_provider.dart';
 import 'message_list.dart';
@@ -19,7 +19,8 @@ class _ChatViewState extends State<ChatView> {
   final TextEditingController _messageController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   final FocusNode myFocusNode = FocusNode();
-  bool _didInitialAutoScroll = false; // guard to only auto-scroll once after history loads
+  bool _didInitialAutoScroll =
+      false; // guard to only auto-scroll once after history loads
 
   @override
   void initState() {
@@ -92,10 +93,15 @@ class _ChatViewState extends State<ChatView> {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (_) => GroupInfoPage(groupId: widget.groupId, initialName: widget.groupName),
+                  builder: (_) => GroupInfoPage(
+                    groupId: widget.groupId,
+                    initialName: widget.groupName,
+                  ),
                 ),
               ).then((result) {
-                if (result is Map && (result['leftGroup'] == true || result['deletedGroup'] == true)) {
+                if (result is Map &&
+                    (result['leftGroup'] == true ||
+                        result['deletedGroup'] == true)) {
                   if (mounted) Navigator.of(context).pop(result);
                 }
               });
@@ -111,21 +117,31 @@ class _ChatViewState extends State<ChatView> {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(children: [
-                      Text(
-                        widget.groupName,
-                        style: TextStyle(
-                          color: theme.primary,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
+                    Row(
+                      children: [
+                        Text(
+                          widget.groupName,
+                          style: TextStyle(
+                            color: theme.primary,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
                         ),
-                      ),
-                      const SizedBox(width: 8),
-                      if (chat.isConnecting)
-                        const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2)),
-                      if (!chat.isConnecting && !chat.isConnected)
-                        const Icon(Icons.cloud_off, color: Colors.red, size: 16),
-                    ]),
+                        const SizedBox(width: 8),
+                        if (chat.isConnecting)
+                          const SizedBox(
+                            width: 14,
+                            height: 14,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          ),
+                        if (!chat.isConnecting && !chat.isConnected)
+                          const Icon(
+                            Icons.cloud_off,
+                            color: Colors.red,
+                            size: 16,
+                          ),
+                      ],
+                    ),
                   ],
                 ),
               ],

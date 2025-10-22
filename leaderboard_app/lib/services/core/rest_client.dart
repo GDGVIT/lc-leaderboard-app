@@ -1,7 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:retrofit/retrofit.dart';
-import 'package:leaderboard_app/models/verification_models.dart';
-import 'package:leaderboard_app/models/auth_models.dart';
+import 'package:leeterboard/models/verification_models.dart';
+import 'package:leeterboard/models/auth_models.dart';
 
 part 'rest_client.g.dart';
 
@@ -21,8 +21,12 @@ abstract class RestClient {
 
   // VERIFICATION
   @POST('/verification/start')
-  Future<VerificationStart> startVerification(@Body() Map<String, dynamic> body);
+  Future<VerificationStart> startVerification(
+    @Body() Map<String, dynamic> body,
+  );
 
   @GET('/verification/status/{username}')
-  Future<VerificationStatus> getVerificationStatus(@Path('username') String username);
+  Future<VerificationStatus> getVerificationStatus(
+    @Path('username') String username,
+  );
 }

@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
 import 'package:go_router/go_router.dart';
-import 'package:leaderboard_app/services/auth/auth_service.dart';
-import 'package:leaderboard_app/provider/user_provider.dart';
-import 'package:leaderboard_app/services/user/user_service.dart';
+import 'package:leeterboard/services/auth/auth_service.dart';
+import 'package:leeterboard/provider/user_provider.dart';
+import 'package:leeterboard/services/user/user_service.dart';
 import 'package:provider/provider.dart';
-import 'package:leaderboard_app/services/core/error_utils.dart';
+import 'package:leeterboard/services/core/error_utils.dart';
 
 class SignInPage extends StatefulWidget {
   const SignInPage({super.key});
@@ -42,7 +42,7 @@ class _SignInPageState extends State<SignInPage> {
           children: [
             // Top title
             Padding(
-              padding: const EdgeInsets.only(bottom: 20,),
+              padding: const EdgeInsets.only(bottom: 20),
               child: Container(
                 child: const Center(
                   child: Text(
@@ -63,7 +63,9 @@ class _SignInPageState extends State<SignInPage> {
                 padding: const EdgeInsets.all(35),
                 decoration: BoxDecoration(
                   color: const Color(0xff11b1a1d),
-                  borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
+                  borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(30),
+                  ),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -76,7 +78,9 @@ class _SignInPageState extends State<SignInPage> {
                         filled: true,
                         fillColor: const Color(0xFF141316),
                         hintText: 'Email',
-                        hintStyle:  TextStyle(color: Colors.grey.withOpacity(0.28)),
+                        hintStyle: TextStyle(
+                          color: Colors.grey.withOpacity(0.28),
+                        ),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
                           borderSide: BorderSide.none,
@@ -92,7 +96,9 @@ class _SignInPageState extends State<SignInPage> {
                         filled: true,
                         fillColor: const Color(0xFF141316),
                         hintText: 'Password',
-                        hintStyle: TextStyle(color: Colors.grey.withOpacity(0.28)),
+                        hintStyle: TextStyle(
+                          color: Colors.grey.withOpacity(0.28),
+                        ),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
                           borderSide: BorderSide.none,
@@ -103,7 +109,10 @@ class _SignInPageState extends State<SignInPage> {
                     if (_error != null)
                       Padding(
                         padding: const EdgeInsets.only(bottom: 8.0),
-                        child: Text(_error!, style: const TextStyle(color: Colors.redAccent)),
+                        child: Text(
+                          _error!,
+                          style: const TextStyle(color: Colors.redAccent),
+                        ),
                       ),
                     SizedBox(
                       width: double.infinity,
@@ -120,7 +129,10 @@ class _SignInPageState extends State<SignInPage> {
                             ? const SizedBox(
                                 width: 18,
                                 height: 18,
-                                child: CircularProgressIndicator(strokeWidth: 2, color: Colors.black),
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: Colors.black,
+                                ),
                               )
                             : const Text(
                                 'Sign In',
@@ -174,17 +186,24 @@ class _SignInPageState extends State<SignInPage> {
     });
     try {
       final authService = context.read<AuthService>();
-      final res = await authService.signIn(email: _emailCtrl.text.trim(), password: _passwordCtrl.text);
+      final res = await authService.signIn(
+        email: _emailCtrl.text.trim(),
+        password: _passwordCtrl.text,
+      );
       // Update user provider
       context.read<UserProvider>().updateUser(
-            name: res.user.username,
-            email: res.user.email ?? '',
-            streak: res.user.streak,
-          );
-  // Fetch current profile to check verification
-  final profile = await authService.getUserProfile();
-  // Also refresh provider from UserService for consistency
-  try { await context.read<UserProvider>().fetchProfile(context.read<UserService>()); } catch (_) {}
+        name: res.user.username,
+        email: res.user.email ?? '',
+        streak: res.user.streak,
+      );
+      // Fetch current profile to check verification
+      final profile = await authService.getUserProfile();
+      // Also refresh provider from UserService for consistency
+      try {
+        await context.read<UserProvider>().fetchProfile(
+          context.read<UserService>(),
+        );
+      } catch (_) {}
       if (!mounted) return;
       if (!profile.leetcodeVerified) {
         context.go('/verify');

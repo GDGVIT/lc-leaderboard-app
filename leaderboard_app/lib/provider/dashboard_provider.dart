@@ -1,15 +1,19 @@
 import 'package:flutter/material.dart';
-import 'package:leaderboard_app/models/dashboard_models.dart';
-import 'package:leaderboard_app/services/dashboard/dashboard_service.dart';
-import 'package:leaderboard_app/provider/user_provider.dart';
-import 'package:leaderboard_app/services/user/user_service.dart';
+import 'package:leeterboard/models/dashboard_models.dart';
+import 'package:leeterboard/services/dashboard/dashboard_service.dart';
+import 'package:leeterboard/provider/user_provider.dart';
+import 'package:leeterboard/services/user/user_service.dart';
 
 class DashboardProvider extends ChangeNotifier {
   final DashboardService service;
   final UserProvider userProvider;
   final UserService? userService; // optional for profile refresh
 
-  DashboardProvider({required this.service, required this.userProvider, this.userService}) {
+  DashboardProvider({
+    required this.service,
+    required this.userProvider,
+    this.userService,
+  }) {
     // Listen for changes to user verification so we can (re)load submissions
     // when the user becomes verified after the initial dashboard load.
     userProvider.addListener(_handleUserChange);
@@ -30,11 +34,7 @@ class DashboardProvider extends ChangeNotifier {
   bool get isVerified => userProvider.user?.leetcodeVerified == true;
 
   Future<void> loadAll() async {
-    await Future.wait([
-      loadDaily(),
-      loadSubmissions(),
-      loadLeaderboard(),
-    ]);
+    await Future.wait([loadDaily(), loadSubmissions(), loadLeaderboard()]);
   }
 
   Future<void> loadDaily() async {

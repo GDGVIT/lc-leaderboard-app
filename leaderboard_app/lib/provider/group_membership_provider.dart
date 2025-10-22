@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
-import 'package:leaderboard_app/models/group_models.dart';
-import 'package:leaderboard_app/services/groups/group_service.dart';
-import 'package:leaderboard_app/provider/user_provider.dart';
+import 'package:leeterboard/models/group_models.dart';
+import 'package:leeterboard/services/groups/group_service.dart';
+import 'package:leeterboard/provider/user_provider.dart';
 
 enum GroupMembershipStatus { loading, member, notMember, error }
 

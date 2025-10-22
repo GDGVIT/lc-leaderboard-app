@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:leaderboard_app/models/group_models.dart';
-import 'package:leaderboard_app/services/groups/group_service.dart';
-import 'package:leaderboard_app/services/dashboard/dashboard_service.dart';
-import 'package:leaderboard_app/provider/user_provider.dart';
-import 'package:leaderboard_app/provider/chatlists_provider.dart';
+import 'package:leeterboard/models/group_models.dart';
+import 'package:leeterboard/services/groups/group_service.dart';
+import 'package:leeterboard/services/dashboard/dashboard_service.dart';
+import 'package:leeterboard/provider/user_provider.dart';
+import 'package:leeterboard/provider/chatlists_provider.dart';
 import 'package:provider/provider.dart';
-import 'package:leaderboard_app/provider/group_membership_provider.dart';
+import 'package:leeterboard/provider/group_membership_provider.dart';
 
 class GroupInfoPage extends StatefulWidget {
   final String groupId;
@@ -47,7 +47,12 @@ class _GroupInfoPageState extends State<GroupInfoPage> {
         final lb = await dash.getLeaderboard();
         _userStats
           ..clear()
-          ..addEntries(lb.map((u) => MapEntry(u.username.toLowerCase(), (u.streak, u.totalSolved))));
+          ..addEntries(
+            lb.map(
+              (u) =>
+                  MapEntry(u.username.toLowerCase(), (u.streak, u.totalSolved)),
+            ),
+          );
       } catch (_) {
         // ignore hydration errors silently
       }
@@ -72,21 +77,29 @@ class _GroupInfoPageState extends State<GroupInfoPage> {
     final g = _group;
     if (uid == null || g == null) return false;
     if (g.creator?.id == uid || g.createdBy == uid) return true;
-    return g.members.any((m) => m.userId == uid && m.role.toUpperCase() == 'OWNER');
+    return g.members.any(
+      (m) => m.userId == uid && m.role.toUpperCase() == 'OWNER',
+    );
   }
 
   bool get _isAdmin {
     final uid = _currentUserId;
     final g = _group;
     if (uid == null || g == null) return false;
-    return g.members.any((m) => m.userId == uid && (m.role.toUpperCase() == 'ADMIN' || m.role.toUpperCase() == 'MODERATOR'));
+    return g.members.any(
+      (m) =>
+          m.userId == uid &&
+          (m.role.toUpperCase() == 'ADMIN' ||
+              m.role.toUpperCase() == 'MODERATOR'),
+    );
   }
 
   bool _canManage(GroupMember target) {
     // Owner can manage anyone except themselves
     if (_isOwner) {
       // Prevent self demotion via manage menu (handled elsewhere) by disallowing actions on OWNER role belonging to current user.
-      return !(target.role.toUpperCase() == 'OWNER' && target.userId == _currentUserId);
+      return !(target.role.toUpperCase() == 'OWNER' &&
+          target.userId == _currentUserId);
     }
     // Admins can manage only regular members (not owner, not other admins/mods)
     if (_isAdmin) {
@@ -106,12 +119,13 @@ class _GroupInfoPageState extends State<GroupInfoPage> {
         // After leaving, refresh public group listing so counts & membership reflect change
         try {
           final chatListProv = context.read<ChatListProvider?>();
-            if (chatListProv != null) {
-              chatListProv.loadPublicGroups(svc);
-            }
+          if (chatListProv != null) {
+            chatListProv.loadPublicGroups(svc);
+          }
         } catch (_) {}
         // Pop immediately with result so upstream (e.g., ChatPage) can react
-        if (mounted) Navigator.of(context).pop({'leftGroup': true, 'groupId': _group!.id});
+        if (mounted)
+          Navigator.of(context).pop({'leftGroup': true, 'groupId': _group!.id});
         return; // skip reloading after leave
       } else {
         await svc.joinGroup(_group!.id);
@@ -149,7 +163,13 @@ class _GroupInfoPageState extends State<GroupInfoPage> {
           if (_loading)
             const Padding(
               padding: EdgeInsets.only(right: 12),
-              child: Center(child: SizedBox(height: 18, width: 18, child: CircularProgressIndicator(strokeWidth: 2))),
+              child: Center(
+                child: SizedBox(
+                  height: 18,
+                  width: 18,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                ),
+              ),
             ),
           // Only the owner should see the 3-dot menu (admins no longer see it)
           if (!_loading && _group != null && _isOwner)
@@ -166,87 +186,102 @@ class _GroupInfoPageState extends State<GroupInfoPage> {
               },
               itemBuilder: (context) => [
                 const PopupMenuItem(value: 'edit', child: Text('Edit Group')),
-                const PopupMenuItem(value: 'delete', child: Text('Delete Group')),
+                const PopupMenuItem(
+                  value: 'delete',
+                  child: Text('Delete Group'),
+                ),
               ],
-      ),
-    ],
+            ),
+        ],
       ),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : _error != null
-              ? Center(child: Text(_error!, style: const TextStyle(color: Colors.redAccent)))
-              : SingleChildScrollView(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: Column(
-                    children: [
-                      const SizedBox(height: 10),
+          ? Center(
+              child: Text(
+                _error!,
+                style: const TextStyle(color: Colors.redAccent),
+              ),
+            )
+          : SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Column(
+                children: [
+                  const SizedBox(height: 10),
 
-                      const CircleAvatar(
-                        radius: 50,
-                        backgroundColor: Colors.grey,
-                        child: Icon(
-                          Icons.group,
-                          color: Colors.white,
+                  const CircleAvatar(
+                    radius: 50,
+                    backgroundColor: Colors.grey,
+                    child: Icon(Icons.group, color: Colors.white),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    name,
+                    style: const TextStyle(color: Colors.white, fontSize: 16),
+                  ),
+                  const SizedBox(height: 8),
+                  if (_group?.description != null)
+                    Text(
+                      _group!.description!,
+                      style: const TextStyle(color: Colors.white70),
+                      textAlign: TextAlign.center,
+                    ),
+                  const SizedBox(height: 12),
+                  // Join button (only when not already a member). Leave button moved below leaderboard.
+                  if (!_isMember)
+                    Center(
+                      child: FractionallySizedBox(
+                        widthFactor: 0.5, // half-width similar to leave button
+                        child: ElevatedButton(
+                          onPressed: _mutating ? null : _joinLeave,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: theme.secondary,
+                            foregroundColor: Colors.black,
+                            padding: const EdgeInsets.symmetric(vertical: 8),
+                            textStyle: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                            ),
+                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                            minimumSize: const Size(0, 36),
+                          ),
+                          child: Text(_mutating ? 'Joining...' : 'Join Group'),
                         ),
                       ),
-                      const SizedBox(height: 8),
-                      Text(name, style: const TextStyle(color: Colors.white, fontSize: 16)),
-                      const SizedBox(height: 8),
-                      if (_group?.description != null)
-                        Text(
-                          _group!.description!,
-                          style: const TextStyle(color: Colors.white70),
-                          textAlign: TextAlign.center,
-                        ),
-                      const SizedBox(height: 12),
-                      // Join button (only when not already a member). Leave button moved below leaderboard.
-                      if (!_isMember)
-                        Center(
-                          child: FractionallySizedBox(
-                            widthFactor: 0.5, // half-width similar to leave button
-                            child: ElevatedButton(
-                              onPressed: _mutating ? null : _joinLeave,
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: theme.secondary,
-                                foregroundColor: Colors.black,
-                                padding: const EdgeInsets.symmetric(vertical: 8),
-                                textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-                                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                                minimumSize: const Size(0, 36),
-                              ),
-                              child: Text(_mutating ? 'Joining...' : 'Join Group'),
+                    ),
+                  const SizedBox(height: 16),
+                  _membersCard(_group?.members ?? const []),
+                  const SizedBox(height: 16),
+                  _xpTable(_group?.members ?? const []),
+                  const SizedBox(height: 16),
+                  // Red leave button placed below the top players table as requested.
+                  if (_isMember)
+                    Center(
+                      child: FractionallySizedBox(
+                        widthFactor: 0.5, // half of available width
+                        child: ElevatedButton(
+                          onPressed: _mutating ? null : _joinLeave,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.redAccent,
+                            disabledBackgroundColor: Colors.redAccent
+                                .withOpacity(0.5),
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 8),
+                            textStyle: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
                             ),
+                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                            minimumSize: const Size(0, 36),
                           ),
+                          child: Text(_mutating ? 'Leaving...' : 'Leave Group'),
                         ),
-                      const SizedBox(height: 16),
-                      _membersCard(_group?.members ?? const []),
-                      const SizedBox(height: 16),
-                      _xpTable(_group?.members ?? const []),
-                      const SizedBox(height: 16),
-                      // Red leave button placed below the top players table as requested.
-                      if (_isMember)
-                        Center(
-                          child: FractionallySizedBox(
-                            widthFactor: 0.5, // half of available width
-                            child: ElevatedButton(
-                              onPressed: _mutating ? null : _joinLeave,
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.redAccent,
-                                disabledBackgroundColor: Colors.redAccent.withOpacity(0.5),
-                                foregroundColor: Colors.white,
-                                padding: const EdgeInsets.symmetric(vertical: 8),
-                                textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-                                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                                minimumSize: const Size(0, 36),
-                              ),
-                              child: Text(_mutating ? 'Leaving...' : 'Leave Group'),
-                            ),
-                          ),
-                        ),
-                      const SizedBox(height: 200),
-                    ],
-                  ),
-                ),
+                      ),
+                    ),
+                  const SizedBox(height: 200),
+                ],
+              ),
+            ),
     );
   }
 
@@ -258,6 +293,7 @@ class _GroupInfoPageState extends State<GroupInfoPage> {
       if (r == 'ADMIN' || r == 'MODERATOR') return 1;
       return 2; // MEMBER or anything else
     }
+
     final sorted = [...members]
       ..sort((a, b) {
         final ar = roleRank(a.role);
@@ -270,7 +306,8 @@ class _GroupInfoPageState extends State<GroupInfoPage> {
 
     return Container(
       width: double.infinity,
-      padding: EdgeInsets.zero, // Removed padding so divider lines span edge-to-edge
+      padding:
+          EdgeInsets.zero, // Removed padding so divider lines span edge-to-edge
       decoration: BoxDecoration(
         color: Colors.grey.shade900,
         borderRadius: BorderRadius.circular(12),
@@ -284,11 +321,7 @@ class _GroupInfoPageState extends State<GroupInfoPage> {
             child: Text('Members', style: TextStyle(fontSize: 18)),
           ),
           // Top divider above the first member row
-          Divider(
-            color: Colors.grey.shade500,
-            height: 1,
-            thickness: 1,
-          ),
+          Divider(color: Colors.grey.shade500, height: 1, thickness: 1),
           for (int i = 0; i < sorted.length; i++) ...[
             Padding(
               // Maintain horizontal padding for content while allowing dividers to stretch full width
@@ -299,8 +332,13 @@ class _GroupInfoPageState extends State<GroupInfoPage> {
                     radius: 18,
                     backgroundColor: Colors.grey.shade700,
                     child: Text(
-                      (sorted[i].user?.username.isNotEmpty == true) ? sorted[i].user!.username[0] : '?',
-                      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                      (sorted[i].user?.username.isNotEmpty == true)
+                          ? sorted[i].user!.username[0]
+                          : '?',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -323,7 +361,11 @@ class _GroupInfoPageState extends State<GroupInfoPage> {
                   ),
                   PopupMenuButton<String>(
                     tooltip: 'Member actions',
-                    icon: const Icon(Icons.chevron_right, color: Colors.white70, size: 20),
+                    icon: const Icon(
+                      Icons.chevron_right,
+                      color: Colors.white70,
+                      size: 20,
+                    ),
                     onSelected: (value) async {
                       final m = sorted[i];
                       switch (value) {
@@ -350,9 +392,21 @@ class _GroupInfoPageState extends State<GroupInfoPage> {
                         ];
                       }
                       return [
-                        const PopupMenuItem(value: 'remove', child: Text('Remove')),
-                        if (m.role.toUpperCase() == 'MEMBER') const PopupMenuItem(value: 'promote', child: Text('Promote to Admin')),
-                        if (m.role.toUpperCase() == 'ADMIN' || m.role.toUpperCase() == 'MODERATOR') const PopupMenuItem(value: 'demote', child: Text('Demote to Member')),
+                        const PopupMenuItem(
+                          value: 'remove',
+                          child: Text('Remove'),
+                        ),
+                        if (m.role.toUpperCase() == 'MEMBER')
+                          const PopupMenuItem(
+                            value: 'promote',
+                            child: Text('Promote to Admin'),
+                          ),
+                        if (m.role.toUpperCase() == 'ADMIN' ||
+                            m.role.toUpperCase() == 'MODERATOR')
+                          const PopupMenuItem(
+                            value: 'demote',
+                            child: Text('Demote to Member'),
+                          ),
                       ];
                     },
                   ),
@@ -360,11 +414,7 @@ class _GroupInfoPageState extends State<GroupInfoPage> {
               ),
             ),
             if (i < sorted.length - 1)
-              Divider(
-                color: Colors.grey.shade800,
-                height: 1,
-                thickness: 1,
-              ),
+              Divider(color: Colors.grey.shade800, height: 1, thickness: 1),
           ],
         ],
       ),
@@ -403,25 +453,83 @@ class _GroupInfoPageState extends State<GroupInfoPage> {
               headingRowHeight: 32,
               headingRowColor: MaterialStateProperty.all(Colors.grey[850]),
               columns: const [
-                DataColumn(label: Text('Place', style: TextStyle(color: Colors.white, fontSize: 12))),
-                DataColumn(label: Text('Player', style: TextStyle(color: Colors.white, fontSize: 12))),
-                DataColumn(label: Text('Streak', style: TextStyle(color: Colors.white, fontSize: 12))),
-                DataColumn(label: Text('Solved', style: TextStyle(color: Colors.white, fontSize: 12))),
+                DataColumn(
+                  label: Text(
+                    'Place',
+                    style: TextStyle(color: Colors.white, fontSize: 12),
+                  ),
+                ),
+                DataColumn(
+                  label: Text(
+                    'Player',
+                    style: TextStyle(color: Colors.white, fontSize: 12),
+                  ),
+                ),
+                DataColumn(
+                  label: Text(
+                    'Streak',
+                    style: TextStyle(color: Colors.white, fontSize: 12),
+                  ),
+                ),
+                DataColumn(
+                  label: Text(
+                    'Solved',
+                    style: TextStyle(color: Colors.white, fontSize: 12),
+                  ),
+                ),
               ],
               rows: List.generate(sorted.length, (i) {
                 final m = sorted[i];
                 final uname = (m.user?.username ?? m.userId).toLowerCase();
                 final hydrated = _userStats[uname];
-                final streak = hydrated != null ? hydrated.$1 : (m.user?.streak ?? 0);
-                final solved = hydrated != null ? hydrated.$2 : (m.user?.totalSolved ?? 0);
+                final streak = hydrated != null
+                    ? hydrated.$1
+                    : (m.user?.streak ?? 0);
+                final solved = hydrated != null
+                    ? hydrated.$2
+                    : (m.user?.totalSolved ?? 0);
                 final streakDisplay = streak == 0 ? '—' : '$streak';
                 final solvedDisplay = solved == 0 ? '—' : '$solved';
-                return DataRow(cells: [
-                  DataCell(Text('${i + 1}', style: const TextStyle(color: Colors.white, fontSize: 12))),
-                  DataCell(Text(m.user?.username ?? m.userId, style: const TextStyle(color: Colors.white, fontSize: 12))),
-                  DataCell(Text(streakDisplay, style: const TextStyle(color: Colors.white, fontSize: 12))),
-                  DataCell(Text(solvedDisplay, style: const TextStyle(color: Colors.white, fontSize: 12))),
-                ]);
+                return DataRow(
+                  cells: [
+                    DataCell(
+                      Text(
+                        '${i + 1}',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ),
+                    DataCell(
+                      Text(
+                        m.user?.username ?? m.userId,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ),
+                    DataCell(
+                      Text(
+                        streakDisplay,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ),
+                    DataCell(
+                      Text(
+                        solvedDisplay,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ),
+                  ],
+                );
               }),
             ),
           ),
@@ -433,8 +541,12 @@ class _GroupInfoPageState extends State<GroupInfoPage> {
   Future<void> _showEditGroupDialog() async {
     if (_group == null) return;
     final nameController = TextEditingController(text: _group!.name);
-    final descController = TextEditingController(text: _group!.description ?? '');
-    final maxMembersController = TextEditingController(text: _group!.maxMembers?.toString() ?? '');
+    final descController = TextEditingController(
+      text: _group!.description ?? '',
+    );
+    final maxMembersController = TextEditingController(
+      text: _group!.maxMembers?.toString() ?? '',
+    );
     bool isPrivate = _group!.isPrivate;
 
     await showModalBottomSheet(
@@ -484,7 +596,9 @@ class _GroupInfoPageState extends State<GroupInfoPage> {
                     style: TextStyle(color: theme.primary),
                     decoration: InputDecoration(
                       labelText: 'Name *',
-                      labelStyle: TextStyle(color: theme.primary.withOpacity(0.7)),
+                      labelStyle: TextStyle(
+                        color: theme.primary.withOpacity(0.7),
+                      ),
                       filled: true,
                       fillColor: Colors.grey.shade900,
                       border: OutlineInputBorder(
@@ -500,7 +614,9 @@ class _GroupInfoPageState extends State<GroupInfoPage> {
                     style: TextStyle(color: theme.primary),
                     decoration: InputDecoration(
                       labelText: 'Description',
-                      labelStyle: TextStyle(color: theme.primary.withOpacity(0.7)),
+                      labelStyle: TextStyle(
+                        color: theme.primary.withOpacity(0.7),
+                      ),
                       filled: true,
                       fillColor: Colors.grey.shade900,
                       border: OutlineInputBorder(
@@ -519,7 +635,9 @@ class _GroupInfoPageState extends State<GroupInfoPage> {
                           style: TextStyle(color: theme.primary),
                           decoration: InputDecoration(
                             labelText: 'Max Members (optional)',
-                            labelStyle: TextStyle(color: theme.primary.withOpacity(0.7)),
+                            labelStyle: TextStyle(
+                              color: theme.primary.withOpacity(0.7),
+                            ),
                             filled: true,
                             fillColor: Colors.grey.shade900,
                             border: OutlineInputBorder(
@@ -533,10 +651,16 @@ class _GroupInfoPageState extends State<GroupInfoPage> {
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('Private', style: TextStyle(color: theme.primary.withOpacity(0.7))),
+                          Text(
+                            'Private',
+                            style: TextStyle(
+                              color: theme.primary.withOpacity(0.7),
+                            ),
+                          ),
                           Switch(
                             value: isPrivate,
-                            onChanged: (v) => setSheetState(() => isPrivate = v),
+                            onChanged: (v) =>
+                                setSheetState(() => isPrivate = v),
                             activeColor: theme.secondary,
                           ),
                         ],
@@ -552,27 +676,45 @@ class _GroupInfoPageState extends State<GroupInfoPage> {
                           : () async {
                               final name = nameController.text.trim();
                               if (name.isEmpty) {
-                                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Name is required')));
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text('Name is required'),
+                                  ),
+                                );
                                 return;
                               }
                               setState(() => _mutating = true);
-                              final maxMembers = int.tryParse(maxMembersController.text.trim());
+                              final maxMembers = int.tryParse(
+                                maxMembersController.text.trim(),
+                              );
                               try {
                                 final svc = context.read<GroupService>();
                                 final g = await svc.updateGroup(
                                   _group!.id,
                                   name: name,
-                                  description: descController.text.trim().isEmpty ? null : descController.text.trim(),
+                                  description:
+                                      descController.text.trim().isEmpty
+                                      ? null
+                                      : descController.text.trim(),
                                   isPrivate: isPrivate,
                                   maxMembers: maxMembers,
                                 );
                                 if (mounted) {
-                                  context.read<ChatListProvider?>()?.updateGroupMeta(groupId: g.id, name: g.name, isPrivate: g.isPrivate);
+                                  context
+                                      .read<ChatListProvider?>()
+                                      ?.updateGroupMeta(
+                                        groupId: g.id,
+                                        name: g.name,
+                                        isPrivate: g.isPrivate,
+                                      );
                                 }
                                 await _load();
                                 if (mounted) Navigator.pop(context);
                               } catch (_) {
-                                if (mounted) setState(() => _error = 'Failed to update group');
+                                if (mounted)
+                                  setState(
+                                    () => _error = 'Failed to update group',
+                                  );
                               } finally {
                                 if (mounted) setState(() => _mutating = false);
                               }
@@ -581,15 +723,24 @@ class _GroupInfoPageState extends State<GroupInfoPage> {
                           ? SizedBox(
                               height: 18,
                               width: 18,
-                              child: CircularProgressIndicator(strokeWidth: 2, color: Theme.of(context).colorScheme.onSecondary),
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.onSecondary,
+                              ),
                             )
                           : const Icon(Icons.check),
                       label: Text(_mutating ? 'Saving...' : 'Save Changes'),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Theme.of(context).colorScheme.secondary,
+                        backgroundColor: Theme.of(
+                          context,
+                        ).colorScheme.secondary,
                         foregroundColor: Colors.black,
                         padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
                       ),
                     ),
                   ),
@@ -610,10 +761,18 @@ class _GroupInfoPageState extends State<GroupInfoPage> {
       builder: (context) => AlertDialog(
         backgroundColor: Colors.grey[900],
         title: const Text('Delete Group'),
-        content: const Text('Are you sure you want to delete this group? This cannot be undone.'),
+        content: const Text(
+          'Are you sure you want to delete this group? This cannot be undone.',
+        ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
-          TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('Delete')),
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Delete'),
+          ),
         ],
       ),
     );
@@ -627,9 +786,9 @@ class _GroupInfoPageState extends State<GroupInfoPage> {
         final chatListProv = context.read<ChatListProvider?>();
         chatListProv?.removeGroup(_group!.id);
       }
-  if (!mounted) return;
-  // Return a signal so the previous page can refresh its data.
-  Navigator.of(context).pop({'deletedGroup': true, 'groupId': _group!.id});
+      if (!mounted) return;
+      // Return a signal so the previous page can refresh its data.
+      Navigator.of(context).pop({'deletedGroup': true, 'groupId': _group!.id});
     } catch (_) {
       setState(() => _error = 'Failed to delete group');
     } finally {

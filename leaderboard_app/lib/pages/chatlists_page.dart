@@ -1,12 +1,12 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:leaderboard_app/provider/chatlists_provider.dart';
-import 'package:leaderboard_app/services/groups/group_service.dart';
+import 'package:leeterboard/provider/chatlists_provider.dart';
+import 'package:leeterboard/services/groups/group_service.dart';
 import 'package:provider/provider.dart';
 import 'groupinfo_page.dart';
 import 'chat_page.dart';
-import 'package:leaderboard_app/provider/user_provider.dart';
+import 'package:leeterboard/provider/user_provider.dart';
 
 class ChatlistsPage extends StatefulWidget {
   const ChatlistsPage({super.key});
@@ -30,7 +30,9 @@ class _ChatlistsPageState extends State<ChatlistsPage> {
       if (!mounted || _loadedOnce) return;
       _loadedOnce = true;
       final chatProvider = context.read<ChatListProvider>();
-      if (!chatProvider.isLoading && chatProvider.chatGroups.isEmpty && chatProvider.error == null) {
+      if (!chatProvider.isLoading &&
+          chatProvider.chatGroups.isEmpty &&
+          chatProvider.error == null) {
         final svc = context.read<GroupService>();
         chatProvider.loadPublicGroups(svc);
       }
@@ -51,13 +53,19 @@ class _ChatlistsPageState extends State<ChatlistsPage> {
     _debounce = Timer(const Duration(milliseconds: 400), () {
       if (!mounted) return;
       final svc = context.read<GroupService>();
-      context.read<ChatListProvider>().loadPublicGroups(svc, search: _searchQuery.isEmpty ? null : _searchQuery);
+      context.read<ChatListProvider>().loadPublicGroups(
+        svc,
+        search: _searchQuery.isEmpty ? null : _searchQuery,
+      );
     });
   }
 
   Future<void> _refresh() async {
     final svc = context.read<GroupService>();
-    await context.read<ChatListProvider>().loadPublicGroups(svc, search: _searchQuery.isEmpty ? null : _searchQuery);
+    await context.read<ChatListProvider>().loadPublicGroups(
+      svc,
+      search: _searchQuery.isEmpty ? null : _searchQuery,
+    );
   }
 
   void _showCreateGroupSheet() {
@@ -114,7 +122,9 @@ class _ChatlistsPageState extends State<ChatlistsPage> {
                     style: TextStyle(color: theme.primary),
                     decoration: InputDecoration(
                       labelText: 'Name *',
-                      labelStyle: TextStyle(color: theme.primary.withOpacity(0.7)),
+                      labelStyle: TextStyle(
+                        color: theme.primary.withOpacity(0.7),
+                      ),
                       filled: true,
                       fillColor: Colors.grey.shade900,
                       border: OutlineInputBorder(
@@ -130,7 +140,9 @@ class _ChatlistsPageState extends State<ChatlistsPage> {
                     style: TextStyle(color: theme.primary),
                     decoration: InputDecoration(
                       labelText: 'Description',
-                      labelStyle: TextStyle(color: theme.primary.withOpacity(0.7)),
+                      labelStyle: TextStyle(
+                        color: theme.primary.withOpacity(0.7),
+                      ),
                       filled: true,
                       fillColor: Colors.grey.shade900,
                       border: OutlineInputBorder(
@@ -149,7 +161,9 @@ class _ChatlistsPageState extends State<ChatlistsPage> {
                           style: TextStyle(color: theme.primary),
                           decoration: InputDecoration(
                             labelText: 'Max Members (optional)',
-                            labelStyle: TextStyle(color: theme.primary.withOpacity(0.7)),
+                            labelStyle: TextStyle(
+                              color: theme.primary.withOpacity(0.7),
+                            ),
                             filled: true,
                             fillColor: Colors.grey.shade900,
                             border: OutlineInputBorder(
@@ -163,10 +177,16 @@ class _ChatlistsPageState extends State<ChatlistsPage> {
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('Private', style: TextStyle(color: theme.primary.withOpacity(0.7))),
+                          Text(
+                            'Private',
+                            style: TextStyle(
+                              color: theme.primary.withOpacity(0.7),
+                            ),
+                          ),
                           Switch(
                             value: isPrivate,
-                            onChanged: (v) => setSheetState(() => isPrivate = v),
+                            onChanged: (v) =>
+                                setSheetState(() => isPrivate = v),
                             activeColor: theme.secondary,
                           ),
                         ],
@@ -175,7 +195,13 @@ class _ChatlistsPageState extends State<ChatlistsPage> {
                   ),
                   if (provider.createError != null) ...[
                     const SizedBox(height: 4),
-                    Text(provider.createError!, style: const TextStyle(color: Colors.redAccent, fontSize: 12)),
+                    Text(
+                      provider.createError!,
+                      style: const TextStyle(
+                        color: Colors.redAccent,
+                        fontSize: 12,
+                      ),
+                    ),
                   ],
                   const SizedBox(height: 12),
                   SizedBox(
@@ -186,22 +212,32 @@ class _ChatlistsPageState extends State<ChatlistsPage> {
                           : () async {
                               final name = nameController.text.trim();
                               if (name.isEmpty) {
-                                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Name is required')));
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text('Name is required'),
+                                  ),
+                                );
                                 return;
                               }
-                              final maxMembers = int.tryParse(maxMembersController.text.trim());
+                              final maxMembers = int.tryParse(
+                                maxMembersController.text.trim(),
+                              );
                               final svc = context.read<GroupService>();
                               final created = await provider.createNewGroup(
                                 svc,
                                 name: name,
-                                description: descController.text.trim().isEmpty ? null : descController.text.trim(),
+                                description: descController.text.trim().isEmpty
+                                    ? null
+                                    : descController.text.trim(),
                                 isPrivate: isPrivate,
                                 maxMembers: maxMembers,
                               );
                               if (created != null && mounted) {
                                 Navigator.pop(context); // close sheet
                                 ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(content: Text('Group created')),
+                                  const SnackBar(
+                                    content: Text('Group created'),
+                                  ),
                                 );
                                 // Refresh lists to reflect membership and server-derived fields
                                 // (e.g., lastMessage, counts, privacy flags, etc.)
@@ -214,15 +250,26 @@ class _ChatlistsPageState extends State<ChatlistsPage> {
                           ? SizedBox(
                               height: 18,
                               width: 18,
-                              child: CircularProgressIndicator(strokeWidth: 2, color: Theme.of(context).colorScheme.onSecondary),
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.onSecondary,
+                              ),
                             )
                           : const Icon(Icons.check),
-                      label: Text(provider.isCreating ? 'Creating...' : 'Create'),
+                      label: Text(
+                        provider.isCreating ? 'Creating...' : 'Create',
+                      ),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Theme.of(context).colorScheme.secondary,
+                        backgroundColor: Theme.of(
+                          context,
+                        ).colorScheme.secondary,
                         foregroundColor: Colors.black,
                         padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
                       ),
                     ),
                   ),
@@ -246,9 +293,16 @@ class _ChatlistsPageState extends State<ChatlistsPage> {
     for (final g in rawGroups) {
       final isMember = g['isMember'] == true;
       if (isMember) {
-        joinedCount++; } else { notJoinedCount++; }
+        joinedCount++;
+      } else {
+        notJoinedCount++;
+      }
     }
-    final groups = rawGroups.where((g) => _showJoined ? g['isMember'] == true : g['isMember'] != true).toList();
+    final groups = rawGroups
+        .where(
+          (g) => _showJoined ? g['isMember'] == true : g['isMember'] != true,
+        )
+        .toList();
 
     return Scaffold(
       backgroundColor: theme.surface,
@@ -318,7 +372,10 @@ class _ChatlistsPageState extends State<ChatlistsPage> {
                           suffixIcon: _searchQuery.isNotEmpty
                               ? IconButton(
                                   tooltip: 'Clear',
-                                  icon: Icon(Icons.close, color: theme.primary.withOpacity(0.7)),
+                                  icon: Icon(
+                                    Icons.close,
+                                    color: theme.primary.withOpacity(0.7),
+                                  ),
                                   onPressed: () {
                                     _searchController.clear();
                                     _onSearchChanged('');
@@ -328,7 +385,8 @@ class _ChatlistsPageState extends State<ChatlistsPage> {
                         ),
                         onChanged: _onSearchChanged,
                         textInputAction: TextInputAction.search,
-                        onSubmitted: (_) => _onSearchChanged(_searchController.text),
+                        onSubmitted: (_) =>
+                            _onSearchChanged(_searchController.text),
                       ),
                     ),
                   ),
@@ -403,7 +461,9 @@ class _ChatlistsPageState extends State<ChatlistsPage> {
                             const SizedBox(height: 120),
                             Center(
                               child: Text(
-                                _showJoined ? 'No joined groups' : 'No groups available',
+                                _showJoined
+                                    ? 'No joined groups'
+                                    : 'No groups available',
                                 style: TextStyle(color: theme.primary),
                               ),
                             ),
@@ -416,22 +476,34 @@ class _ChatlistsPageState extends State<ChatlistsPage> {
                         itemBuilder: (context, index) {
                           final group = groups[index];
                           final groupId = group['groupId']?.toString() ?? '';
-                          final groupName = group['name']?.toString() ?? 'Unnamed Group';
+                          final groupName =
+                              group['name']?.toString() ?? 'Unnamed Group';
                           return Column(
                             children: [
                               InkWell(
-                                splashColor: const Color(0xFF705B37).withOpacity(0.35),
-                                highlightColor: const Color(0xFF705B37).withOpacity(0.25),
+                                splashColor: const Color(
+                                  0xFF705B37,
+                                ).withOpacity(0.35),
+                                highlightColor: const Color(
+                                  0xFF705B37,
+                                ).withOpacity(0.25),
                                 onTap: () async {
                                   chatProvider.markGroupAsRead(groupId);
                                   // Determine if user already member; best effort by fetching group
                                   final groupSvc = context.read<GroupService>();
-                                  final userId = context.read<UserProvider?>()?.user?.id;
+                                  final userId = context
+                                      .read<UserProvider?>()
+                                      ?.user
+                                      ?.id;
                                   bool isMember = false;
                                   try {
-                                    final g = await groupSvc.getGroupById(groupId);
+                                    final g = await groupSvc.getGroupById(
+                                      groupId,
+                                    );
                                     if (userId != null) {
-                                      isMember = g.members.any((m) => m.userId == userId);
+                                      isMember = g.members.any(
+                                        (m) => m.userId == userId,
+                                      );
                                     }
                                   } catch (_) {
                                     // fallback: show info page
@@ -441,100 +513,165 @@ class _ChatlistsPageState extends State<ChatlistsPage> {
                                     final result = await Navigator.push(
                                       context,
                                       MaterialPageRoute(
-                                        builder: (context) => ChatPage(groupId: groupId, groupName: groupName),
+                                        builder: (context) => ChatPage(
+                                          groupId: groupId,
+                                          groupName: groupName,
+                                        ),
                                       ),
                                     );
-                                    if (result is Map && (result['deletedGroup'] == true || result['leftGroup'] == true || result['updated'] == true)) {
+                                    if (result is Map &&
+                                        (result['deletedGroup'] == true ||
+                                            result['leftGroup'] == true ||
+                                            result['updated'] == true)) {
                                       await _refresh();
                                     }
                                   } else {
                                     final result = await Navigator.push(
                                       context,
                                       MaterialPageRoute(
-                                        builder: (context) => GroupInfoPage(groupId: groupId, initialName: groupName),
+                                        builder: (context) => GroupInfoPage(
+                                          groupId: groupId,
+                                          initialName: groupName,
+                                        ),
                                       ),
                                     );
                                     // If group was deleted or membership changed, refresh list on return
-                                    if (result is Map && (result['deletedGroup'] == true || result['leftGroup'] == true || result['updated'] == true)) {
+                                    if (result is Map &&
+                                        (result['deletedGroup'] == true ||
+                                            result['leftGroup'] == true ||
+                                            result['updated'] == true)) {
                                       await _refresh();
                                     }
                                   }
                                 },
                                 child: Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 16,
+                                    vertical: 12,
+                                  ),
                                   child: Row(
                                     children: [
                                       const CircleAvatar(
                                         radius: 24,
                                         backgroundColor: Colors.grey,
-                                        child: Icon(Icons.group, color: Colors.white),
+                                        child: Icon(
+                                          Icons.group,
+                                          color: Colors.white,
+                                        ),
                                       ),
                                       const SizedBox(width: 12),
                                       Expanded(
                                         child: Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
                                           children: [
                                             Text(
                                               groupName,
-                                              style: TextStyle(color: theme.primary, fontWeight: FontWeight.bold, fontSize: 16),
+                                              style: TextStyle(
+                                                color: theme.primary,
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: 16,
+                                              ),
                                             ),
                                             const SizedBox(height: 4),
                                             Text(
                                               group['lastMessage'] ?? '',
-                                              style: TextStyle(color: theme.primary.withOpacity(0.7), fontSize: 13, overflow: TextOverflow.ellipsis),
+                                              style: TextStyle(
+                                                color: theme.primary
+                                                    .withOpacity(0.7),
+                                                fontSize: 13,
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
                                             ),
                                           ],
                                         ),
                                       ),
                                       Column(
-                                        crossAxisAlignment: CrossAxisAlignment.end,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.end,
                                         children: [
                                           Row(
                                             mainAxisSize: MainAxisSize.min,
                                             children: [
                                               // Time text
-                                              if ((group['time']?.toString() ?? '').isNotEmpty)
+                                              if ((group['time']?.toString() ??
+                                                      '')
+                                                  .isNotEmpty)
                                                 Padding(
-                                                  padding: const EdgeInsets.only(right: 4),
+                                                  padding:
+                                                      const EdgeInsets.only(
+                                                        right: 4,
+                                                      ),
                                                   child: Text(
-                                                    group['time']?.toString() ?? '',
-                                                    style: TextStyle(color: theme.primary.withOpacity(0.6), fontSize: 12),
+                                                    group['time']?.toString() ??
+                                                        '',
+                                                    style: TextStyle(
+                                                      color: theme.primary
+                                                          .withOpacity(0.6),
+                                                      fontSize: 12,
+                                                    ),
                                                   ),
                                                 ),
                                               // Privacy pill
-                                              Builder(builder: (ctx) {
-                                                final isPrivate = group['isPrivate'] == true;
-                                                final label = isPrivate ? 'Private' : 'Public';
-                                                return Container(
-                                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                                  decoration: BoxDecoration(
-                                                    color: Colors.transparent,
-                                                    borderRadius: BorderRadius.circular(10),
-                                                    border: Border.all(color: theme.primary.withOpacity(0.35), width: 1.5),
-                                                  ),
-                                                  child: Text(
-                                                    label,
-                                                    style: TextStyle(
-                                                      fontSize: 10.5,
-                                                      fontWeight: FontWeight.w600,
-                                                      color: theme.primary.withOpacity(0.85),
-                                                      letterSpacing: 0.2,
+                                              Builder(
+                                                builder: (ctx) {
+                                                  final isPrivate =
+                                                      group['isPrivate'] ==
+                                                      true;
+                                                  final label = isPrivate
+                                                      ? 'Private'
+                                                      : 'Public';
+                                                  return Container(
+                                                    padding:
+                                                        const EdgeInsets.symmetric(
+                                                          horizontal: 6,
+                                                          vertical: 2,
+                                                        ),
+                                                    decoration: BoxDecoration(
+                                                      color: Colors.transparent,
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                            10,
+                                                          ),
+                                                      border: Border.all(
+                                                        color: theme.primary
+                                                            .withOpacity(0.35),
+                                                        width: 1.5,
+                                                      ),
                                                     ),
-                                                  ),
-                                                );
-                                              }),
+                                                    child: Text(
+                                                      label,
+                                                      style: TextStyle(
+                                                        fontSize: 10.5,
+                                                        fontWeight:
+                                                            FontWeight.w600,
+                                                        color: theme.primary
+                                                            .withOpacity(0.85),
+                                                        letterSpacing: 0.2,
+                                                      ),
+                                                    ),
+                                                  );
+                                                },
+                                              ),
                                             ],
                                           ),
                                           const SizedBox(height: 8),
                                           if (group['unread'] == true)
-                                            CircleAvatar(radius: 6, backgroundColor: theme.secondary),
+                                            CircleAvatar(
+                                              radius: 6,
+                                              backgroundColor: theme.secondary,
+                                            ),
                                         ],
                                       ),
                                     ],
                                   ),
                                 ),
                               ),
-                              Divider(height: 1, thickness: 0.6, color: Colors.grey.shade800),
+                              Divider(
+                                height: 1,
+                                thickness: 0.6,
+                                color: Colors.grey.shade800,
+                              ),
                             ],
                           );
                         },
@@ -553,7 +690,12 @@ class _ChatlistsPageState extends State<ChatlistsPage> {
 
 // Helper widget builder for filter buttons
 extension _ChatFilters on _ChatlistsPageState {
-  Widget _buildFilterButton({required String label, required int count, required bool selected, required VoidCallback onTap}) {
+  Widget _buildFilterButton({
+    required String label,
+    required int count,
+    required bool selected,
+    required VoidCallback onTap,
+  }) {
     const activeColor = Color(0xFFF6C155); // #f6c155
     final inactiveBorder = Colors.white.withOpacity(0.1);
     return Expanded(
@@ -564,7 +706,10 @@ extension _ChatFilters on _ChatlistsPageState {
           color: selected ? activeColor : Colors.transparent,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(22),
-            side: BorderSide(color: selected ? activeColor : inactiveBorder, width: 1),
+            side: BorderSide(
+              color: selected ? activeColor : inactiveBorder,
+              width: 1,
+            ),
           ),
           clipBehavior: Clip.antiAlias,
           child: InkWell(

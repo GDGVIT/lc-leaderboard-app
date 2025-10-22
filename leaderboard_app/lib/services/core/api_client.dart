@@ -1,6 +1,6 @@
 import 'package:dio/dio.dart';
-import 'package:leaderboard_app/config/api_config.dart';
-import 'package:leaderboard_app/services/core/dio_provider.dart';
+import 'package:leeterboard/config/api_config.dart';
+import 'package:leeterboard/services/core/dio_provider.dart';
 
 class ApiClient {
   static final String kBaseUrl = ApiConfig.baseUrl;

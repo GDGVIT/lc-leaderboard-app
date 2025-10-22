@@ -1,5 +1,5 @@
 import 'package:dio/dio.dart';
-import 'package:leaderboard_app/services/core/api_client.dart';
+import 'package:leeterboard/services/core/api_client.dart';
 
 class LeetCodeService {
   final Dio _dio;
@@ -11,9 +11,10 @@ class LeetCodeService {
   }
 
   Future<StartVerificationResponse> startVerification(String username) async {
-    final res = await _dio.post('/leetcode/connect', data: {
-      'leetcodeUsername': username,
-    });
+    final res = await _dio.post(
+      '/leetcode/connect',
+      data: {'leetcodeUsername': username},
+    );
     final body = res.data as Map<String, dynamic>;
     final data = (body['data'] ?? body) as Map<String, dynamic>;
     return StartVerificationResponse.fromJson(data);
